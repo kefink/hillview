@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Teachers - Hillview School (Class Teacher)</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Manage Teachers</h1>
+        <a href="{{ url_for('classteacher') }}">Back to Dashboard</a> | <a href="{{ url_for('logout') }}">Logout</a>
+
+        {% if error_message %}
+            <p class="error-message">{{ error_message }}</p>
+        {% endif %}
+        {% if success_message %}
+            <p class="success-message">{{ success_message }}</p>
+        {% endif %}
+
+        <h2>Add New Teacher</h2>
+        <form method="POST" action="{{ url_for('manage_teachers') }}">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" name="username" id="username" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" name="password" id="password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="role">Role:</label>
+                <select name="role" id="role" required>
+                    <option value="">Select Role</option>
+                    <option value="teacher">Teacher</option>
+                    <option value="classteacher">Class Teacher</option>
+                    <option value="headteacher">Head Teacher</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="subjects">Subjects (Hold Ctrl/Cmd to select multiple):</label>
+                <select name="subjects" id="subjects" multiple required>
+                    {% for subject in subjects %}
+                        <option value="{{ subject.id }}">{{ subject.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="grade">Grade:</label>
+                <select name="grade" id="grade" required onchange="updateStreams()">
+                    <option value="">Select Grade</option>
+                    {% for grade in grades %}
+                        <option value="{{ grade.id }}">{{ grade.level }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="stream">Stream:</label>
+                <select name="stream" id="stream" required>
+                    <option value="">Select Stream</option>
+                    <!-- Streams will be populated via JavaScript -->
+                </select>
+            </div>
+
+            <button type="submit" name="add_teacher" class="btn">Add Teacher</button>
+        </form>
+
+        <h2>Existing Teachers</h2>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Subjects</th>
+                        <th>Grade</th>
+                        <th>Stream</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for teacher in teachers %}
+                        <tr>
+                            <td>{{ teacher.id }}</td>
+                            <td>{{ teacher.username }}</td>
+                            <td>{{ teacher.role }}</td>
+                            <td>
+                                {% for subject in teacher.subjects %}
+                                    {{ subject.name }}{% if not loop.last %}, {% endif %}
+                                {% endfor %}
+                            </td>
+                            <td>{{ teacher.stream.grade.level if teacher.stream else 'N/A' }}</td>
+                            <td>{{ teacher.stream.name if teacher.stream else 'N/A' }}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('manage_teachers') }}" style="display:inline;">
+                                    <input type="hidden" name="teacher_id" value="{{ teacher.id }}">
+                                    <button type="submit" name="delete_teacher" class="btn btn-secondary">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function updateStreams() {
+            const gradeId = document.getElementById('grade').value;
+            const streamSelect = document.getElementById('stream');
+
+            // Clear existing options
+            streamSelect.innerHTML = '<option value="">Select Stream</option>';
+
+            if (gradeId) {
+                // Fetch streams for the selected grade via an API call
+                fetch(`/get_streams/${gradeId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.streams.forEach(stream => {
+                            const option = document.createElement('option');
+                            option.value = stream.id;
+                            option.textContent = stream.name;
+                            streamSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching streams:', error);
+                    });
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Grades and Streams - Hillview School (Class Teacher)</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Manage Grades and Streams</h1>
+        <a href="{{ url_for('classteacher') }}">Back to Dashboard</a> | <a href="{{ url_for('logout') }}">Logout</a>
+
+        {% if error_message %}
+            <p class="error">{{ error_message }}</p>
+        {% endif %}
+        {% if success_message %}
+            <p class="success">{{ success_message }}</p>
+        {% endif %}
+
+        <h2>Add New Grade</h2>
+        <form method="POST" action="{{ url_for('manage_grades_streams') }}">
+            <label for="grade_level">Grade Level (e.g., 1, 2, ...):</label>
+            <input type="text" name="grade_level" id="grade_level" required><br>
+            <button type="submit" name="add_grade">Add Grade</button>
+        </form>
+
+        <h2>Add New Stream</h2>
+        <form method="POST" action="{{ url_for('manage_grades_streams') }}">
+            <label for="stream_name">Stream Name (e.g., B, G, Y):</label>
+            <input type="text" name="stream_name" id="stream_name" required><br>
+
+            <label for="grade_id">Grade:</label>
+            <select name="grade_id" id="grade_id" required>
+                <option value="">Select Grade</option>
+                {% for grade in grades %}
+                    <option value="{{ grade.id }}">{{ grade.level }}</option>
+                {% endfor %}
+            </select><br>
+
+            <button type="submit" name="add_stream">Add Stream</button>
+        </form>
+
+        <h2>Existing Grades and Streams</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Grade ID</th>
+                    <th>Grade Level</th>
+                    <th>Streams</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for grade in grades %}
+                    <tr>
+                        <td>{{ grade.id }}</td>
+                        <td>{{ grade.level }}</td>
+                        <td>
+                            {% for stream in grade.streams %}
+                                {{ stream.name }} (ID: {{ stream.id }}) 
+                                <form method="POST" action="{{ url_for('manage_grades_streams') }}" style="display:inline;">
+                                    <input type="hidden" name="stream_id" value="{{ stream.id }}">
+                                    <button type="submit" name="delete_stream">Delete</button>
+                                </form>
+                                {% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <form method="POST" action="{{ url_for('manage_grades_streams') }}" style="display:inline;">
+                                <input type="hidden" name="grade_id" value="{{ grade.id }}">
+                                <button type="submit" name="delete_grade">Delete Grade</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Students - Hillview School (Class Teacher)</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Include the CSS additions from above -->
+    <style>
+        /* You can also include the CSS directly here or in a separate file */
+    </style>
+</head>
+<body>
+    <div class="container manage-container">
+        <h1>Manage Students</h1>
+        <a href="{{ url_for('classteacher') }}">Back to Dashboard</a> | <a href="{{ url_for('logout') }}">Logout</a>
+
+        <!-- Dynamic Message Container -->
+        <div id="message-container"></div>
+
+        {% if error_message %}
+            <p class="error">{{ error_message }}</p>
+        {% endif %}
+        {% if success_message %}
+            <p class="success">{{ success_message }}</p>
+        {% endif %}
+
+        <!-- Select Educational Level - Now as a prominent selector -->
+        <div class="level-selector">
+            <form id="educational-level-form">
+                <label for="educational_level">Educational Level:</label>
+                <select name="educational_level" id="educational_level" onchange="updateAllForms()">
+                    <option value="">Select Educational Level</option>
+                    {% for level in educational_levels %}
+                        <option value="{{ level }}" {% if selected_level == level %}selected{% endif %}>{{ level }}</option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+
+        <!-- Two column layout for forms -->
+        <div class="forms-grid">
+            <!-- Form to Add a Grade -->
+            <div class="form-card">
+                <h2>Add New Grade</h2>
+                <form method="POST" action="{{ url_for('manage_students') }}" id="add-grade-form">
+                    <input type="hidden" name="action" value="add_grade">
+                    <input type="hidden" name="educational_level" id="educational_level_grade">
+                    <div class="form-group">
+                        <label for="grade_name">Grade Name:</label>
+                        <select name="grade_name" id="grade_name" required>
+                            <option value="">Select Grade Name</option>
+                            <!-- Will be populated by JavaScript -->
+                        </select>
+                        <span id="grade-status" class="grade-status"></span>
+                    </div>
+                    <button type="submit" id="add-grade-button" class="manage-btn">Add Grade</button>
+                </form>
+            </div>
+
+            <!-- Form to Add a Stream -->
+            <div class="form-card">
+                <h2>Add New Stream</h2>
+                <form method="POST" action="{{ url_for('manage_students') }}" id="add-stream-form">
+                    <input type="hidden" name="action" value="add_stream">
+                    <input type="hidden" name="educational_level" id="educational_level_stream">
+                    <div class="form-group">
+                        <label for="grade_id">Select Grade:</label>
+                        <select name="grade_id" id="grade_id" required>
+                            <option value="">Select Grade</option>
+                            <!-- Will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="stream_name">Stream Name (e.g., Stream A):</label>
+                        <input type="text" name="stream_name" id="stream_name" required>
+                    </div>
+                    <button type="submit" class="manage-btn">Add Stream</button>
+                </form>
+            </div>
+
+            <!-- Form to Add a Student -->
+            <div class="form-card">
+                <h2>Add New Student</h2>
+                <form method="POST" action="{{ url_for('manage_students') }}" id="add-student-form">
+                    <input type="hidden" name="action" value="add_student">
+                    <input type="hidden" name="educational_level" id="educational_level_student">
+                    <div class="form-group">
+                        <label for="name">Student Name:</label>
+                        <input type="text" name="name" id="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="admission_number">Admission Number:</label>
+                        <input type="text" name="admission_number" id="admission_number" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="grade">Grade:</label>
+                        <select name="grade" id="grade" required onchange="updateStreams()">
+                            <option value="">Select Grade</option>
+                            <!-- Will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="stream">Stream (Optional):</label>
+                        <select name="stream" id="stream">
+                            <option value="">No Stream</option>
+                            <!-- Will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <button type="submit" class="manage-btn">Add Student</button>
+                </form>
+            </div>
+
+            <!-- Form to Bulk Upload Students -->
+            <div class="form-card">
+                <h2>Bulk Upload Students</h2>
+                <form method="POST" action="{{ url_for('manage_students') }}" enctype="multipart/form-data" id="bulk-upload-form">
+                    <input type="hidden" name="action" value="bulk_upload_students">
+                    <input type="hidden" name="educational_level" id="educational_level_bulk">
+                    <div class="form-group">
+                        <label for="student_file">Upload Student List (CSV):</label>
+                        <input type="file" name="student_file" id="student_file" accept=".csv" required>
+                    </div>
+                    <p><small>Expected CSV format: <code>name,grade,stream,admission_number</code> (stream is optional)</small></p>
+                    <button type="submit" class="manage-btn">Upload Students</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Display Existing Students -->
+        <div class="students-section">
+            <h2>Existing Students</h2>
+            <div id="student-filter">
+                <label for="filter_level">Filter by Educational Level:</label>
+                <select id="filter_level" onchange="filterStudentTable()">
+                    <option value="">All Levels</option>
+                    {% for level in educational_levels %}
+                        <option value="{{ level }}">{{ level }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            {% if students %}
+                <div class="table-responsive">
+                    <table id="students-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Admission Number</th>
+                                <th>Grade</th>
+                                <th>Stream</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                                <tr data-grade="{{ student.stream.grade.level if student.stream else '' }}">
+                                    <td>{{ student.id }}</td>
+                                    <td>{{ student.name }}</td>
+                                    <td>{{ student.admission_number }}</td>
+                                    <td>{{ student.stream.grade.level if student.stream else 'N/A' }}</td>
+                                    <td>{{ student.stream.name if student.stream else 'No Stream' }}</td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('manage_students') }}" style="display:inline;">
+                                            <input type="hidden" name="action" value="delete_student">
+                                            <input type="hidden" name="student_id" value="{{ student.id }}">
+                                            <button type="submit" class="delete-btn">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p>No students added yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Keep your existing JavaScript code here
+        // JavaScript remains unchanged
+        
+        // Store all grades and mapping data from server
+        const allGrades = {{ grades | tojson }};
+        const educationalLevelMapping = {{ educational_level_mapping | tojson }};
+        
+        // Check for success or error message from Flask
+        document.addEventListener('DOMContentLoaded', function() {
+            // Process success or error messages
+            const successMessage = "{{ success_message|safe if success_message else '' }}";
+            const errorMessage = "{{ error_message|safe if error_message else '' }}";
+            
+            if (successMessage) {
+                showNotification(successMessage, 'success');
+            }
+            if (errorMessage) {
+                showNotification(errorMessage, 'error');
+            }
+            
+            // Check for URL parameter or localStorage
+            const urlParams = new URLSearchParams(window.location.search);
+            const savedLevel = urlParams.get('level') || localStorage.getItem('selectedEducationalLevel') || '';
+            
+            if (savedLevel) {
+                document.getElementById('educational_level').value = savedLevel;
+            }
+            
+            // Initialize all forms based on selected level
+            updateAllForms();
+        });
+
+        // Function to show notification
+        function showNotification(message, type) {
+            const container = document.getElementById('message-container');
+            const notification = document.createElement('div');
+            notification.className = `message message-${type}`;
+            notification.textContent = message;
+            container.appendChild(notification);
+            
+            // Remove notification after animation completes
+            setTimeout(() => {
+                notification.remove();
+            }, 5000);
+        }
+
+        // Update all forms when educational level changes
+        function updateAllForms() {
+            const educationalLevel = document.getElementById('educational_level').value;
+            
+            // Save selection to localStorage for persistence
+            localStorage.setItem('selectedEducationalLevel', educationalLevel);
+            
+            // Update hidden fields in all forms
+            document.getElementById('educational_level_grade').value = educationalLevel;
+            document.getElementById('educational_level_stream').value = educationalLevel;
+            document.getElementById('educational_level_student').value = educationalLevel;
+            document.getElementById('educational_level_bulk').value = educationalLevel;
+            
+            // Populate grade selection dropdowns
+            updateGradeOptions();
+            
+            // Update streams based on selected grade
+            updateStreams();
+        }
+
+        // Populate available grade options based on educational level
+        function updateGradeOptions() {
+            const educationalLevel = document.getElementById('educational_level').value;
+            const gradeSelects = [
+                document.getElementById('grade'), 
+                document.getElementById('grade_id')
+            ];
+            
+            // Also populate the grade name dropdown for adding new grades
+            const gradeNameSelect = document.getElementById('grade_name');
+            gradeNameSelect.innerHTML = '<option value="">Select Grade Name</option>';
+            
+            if (educationalLevel) {
+                const allowedGrades = educationalLevelMapping[educationalLevel] || [];
+                
+                // Get existing grades for this educational level
+                const existingGradeNames = allGrades
+                    .filter(grade => allowedGrades.includes(grade.level))
+                    .map(grade => grade.level);
+                
+                // Populate grade name dropdown with allowed grades for this level
+                allowedGrades.forEach(gradeName => {
+                    const option = document.createElement('option');
+                    option.value = gradeName;
+                    option.textContent = gradeName;
+                    
+                    // Mark existing grades
+                    if (existingGradeNames.includes(gradeName)) {
+                        option.classList.add('exists');
+                        option.textContent = gradeName + ' (Already exists)';
+                    }
+                    
+                    gradeNameSelect.appendChild(option);
+                });
+                
+                // Check if selected grade exists and update status
+                updateGradeStatus();
+                
+                // Populate grade selection dropdowns
+                gradeSelects.forEach(gradeSelect => {
+                    // Clear existing options except default
+                    gradeSelect.innerHTML = '<option value="">Select Grade</option>';
+                    
+                    // Add existing grades that match the educational level
+                    allGrades.forEach(grade => {
+                        if (allowedGrades.includes(grade.level)) {
+                            const option = document.createElement('option');
+                            option.value = grade.id;
+                            option.textContent = grade.level;
+                            option.setAttribute('data-level', grade.level);
+                            gradeSelect.appendChild(option);
+                        }
+                    });
+                });
+            } else {
+                // If no level selected, show all grades
+                gradeSelects.forEach(gradeSelect => {
+                    gradeSelect.innerHTML = '<option value="">Select Grade</option>';
+                    allGrades.forEach(grade => {
+                        const option = document.createElement('option');
+                        option.value = grade.id;
+                        option.textContent = grade.level;
+                        option.setAttribute('data-level', grade.level);
+                        gradeSelect.appendChild(option);
+                    });
+                });
+            }
+        }
+
+        // Check if the selected grade exists and update status
+        function updateGradeStatus() {
+            const gradeNameSelect = document.getElementById('grade_name');
+            const statusSpan = document.getElementById('grade-status');
+            const addGradeButton = document.getElementById('add-grade-button');
+            
+            if (gradeNameSelect.value) {
+                const selectedOption = gradeNameSelect.options[gradeNameSelect.selectedIndex];
+                
+                if (selectedOption.classList.contains('exists')) {
+                    statusSpan.textContent = 'This grade already exists.';
+                    statusSpan.style.color = '#dd6666';
+                    addGradeButton.disabled = true;
+                } else {
+                    statusSpan.textContent = 'This grade can be added.';
+                    statusSpan.style.color = '#66aa66';
+                    addGradeButton.disabled = false;
+                }
+            } else {
+                statusSpan.textContent = '';
+                addGradeButton.disabled = false;
+            }
+        }
+
+        // Add event listener to grade name select
+        document.getElementById('grade_name').addEventListener('change', updateGradeStatus);
+
+        // Add form submission handler for adding a grade
+        document.getElementById('add-grade-form').addEventListener('submit', function(e) {
+            const gradeName = document.getElementById('grade_name').value;
+            if (gradeName) {
+                // Set a cookie to show a message after redirect
+                localStorage.setItem('pendingGradeAdd', gradeName);
+            }
+        });
+
+        // Update streams based on selected grade
+        function updateStreams() {
+            const gradeId = document.getElementById('grade').value;
+            const streamSelect = document.getElementById('stream');
+            
+            // Clear existing options except the default
+            streamSelect.innerHTML = '<option value="">No Stream</option>';
+            
+            if (gradeId) {
+                // Fetch streams for the selected grade via an API call
+                fetch(`/get_streams/${gradeId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.streams.forEach(stream => {
+                            const option = document.createElement('option');
+                            option.value = stream.id;
+                            option.textContent = stream.name;
+                            streamSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching streams:', error);
+                    });
+            }
+        }
+
+        // Filter student table by educational level
+        function filterStudentTable() {
+            const filterLevel = document.getElementById('filter_level').value;
+            const rows = document.querySelectorAll('#students-table tbody tr');
+            
+            if (!filterLevel) {
+                // Show all rows if no filter selected
+                rows.forEach(row => row.style.display = '');
+                return;
+            }
+            
+            // Get grades for the selected educational level
+            const allowedGrades = educationalLevelMapping[filterLevel] || [];
+            
+            rows.forEach(row => {
+                const gradeCell = row.querySelector('td:nth-child(4)').textContent;  // Adjusted for new column
+                if (allowedGrades.includes(gradeCell) || gradeCell === 'N/A') {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Add confirmation to delete buttons
+        document.querySelectorAll('.delete-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                if (!confirm('Are you sure you want to delete this student?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+        // Add form submission handlers to include the educational level
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function() {
+                const educationalLevel = document.getElementById('educational_level').value;
+                
+                // Add educational level as a query parameter for redirect after form submission
+                if (educationalLevel) {
+                    const hiddenField = document.createElement('input');
+                    hiddenField.type = 'hidden';
+                    hiddenField.name = 'redirect_level';
+                    hiddenField.value = educationalLevel;
+                    form.appendChild(hiddenField);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

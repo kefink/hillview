@@ -68,7 +68,7 @@ body {
 /* Background Styles with fallback */
 .background {
     background-color: var(--color-medium-dark-green);
-    background-image: linear-gradient(rgba(24, 35, 15, 0.7), rgba(37, 95, 56, 0.7)), url('../hv.jpg');
+    background-image: linear-gradient(rgba(24, 35, 15, 0.8), rgba(37, 95, 56, 0.7)), url('../hv.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -81,18 +81,18 @@ body {
 /* Container Styles */
 .container {
     text-align: center;
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: rgba(255, 255, 255, 0.97);
     padding: var(--space-xxl);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-medium);
     max-width: var(--container-sm);
     width: 90%;
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 /* For dashboard container specifically */
-.container[style*="max-width: var(--container-lg)"] {
+.container[style*=" 𝚖𝚊𝚡-𝚠𝚒𝚍𝚝𝚑: var(--container-lg)"] {
     width: 100%;
     max-width: var(--container-lg);
     margin: 80px auto 60px; /* Top margin for navbar, bottom margin for footer */
@@ -100,7 +100,7 @@ body {
 }
 
 /* Updated container style to support max-width: 90% in classteacher.html */
-.container[style*="max-width: 90%"] {
+.container[style*=" 𝚖𝚊𝚡-𝚠𝚒𝚍𝚝𝚑: 90%"] {
     width: 100%;
     max-width: 90%;
     margin: 80px auto 60px; /* Top margin for navbar, bottom margin for footer */
@@ -148,6 +148,7 @@ a {
 
 a:hover {
     color: var(--color-bright-green);
+    text-decoration: underline;
 }
 
 a:focus {
@@ -175,17 +176,20 @@ a:focus {
     box-shadow: var(--shadow-soft);
     text-align: center;
     margin: 0 auto;
+    text-decoration: none;
 }
 
 .btn:hover {
     background-color: var(--color-bright-green);
     transform: translateY(-2px);
     box-shadow: var(--shadow-medium);
+    text-decoration: none;
 }
 
 .btn:focus {
     outline: 3px solid rgba(37, 95, 56, 0.3);
     outline-offset: 2px;
+    text-decoration: none;
 }
 
 .btn:active {
@@ -293,25 +297,26 @@ textarea:focus {
     color: var(--color-success);
 }
 
-/* Table Styles */
+/* Table Styles - Enhanced for readability */
 .table-responsive {
     overflow-x: auto;
     margin: var(--space-lg) 0;
+    box-shadow: var(--shadow-soft);
+    border-radius: var(--radius-md);
 }
 
 table {
     border-collapse: collapse;
     width: 100%;
-    margin: var(--space-lg) 0;
+    margin: 0;
     background-color: var(--color-white);
     border-radius: var(--radius-md);
     overflow: hidden;
-    box-shadow: var(--shadow-soft);
 }
 
 th, td {
     border: 1px solid var(--color-medium-gray);
-    padding: 0.75rem 1rem;
+    padding: 1rem 1.25rem;
     text-align: left;
 }
 
@@ -319,6 +324,9 @@ th {
     background-color: var(--color-forest-green);
     color: var(--color-white);
     font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
 }
 
 tr:nth-child(even) {
@@ -343,6 +351,7 @@ tbody tr:hover {
     box-shadow: var(--shadow-soft);
     transition: transform var(--transition-fast), box-shadow var(--transition-fast);
     overflow: hidden;
+    border-top: 4px solid var(--color-forest-green);
 }
 
 .dashboard-card:hover {
@@ -403,7 +412,7 @@ tbody tr:hover {
     left: 0;
     right: 0;
     z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
 }
 
 .navbar-brand {
@@ -424,10 +433,14 @@ tbody tr:hover {
     text-decoration: none;
     font-weight: 500;
     transition: color var(--transition-fast);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-sm);
 }
 
 .nav-link:hover {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.1);
+    text-decoration: none;
 }
 
 .nav-link:focus {
@@ -463,6 +476,7 @@ tbody tr:hover {
     border-radius: 8px;
     border: 1px solid #dee2e6;
     animation: fadeIn 0.3s ease-out;
+    box-shadow: var(--shadow-soft);
 }
 
 @keyframes fadeIn {
@@ -515,7 +529,7 @@ tbody tr:hover {
     animation: spin 0.75s linear infinite;
 }
 
-/* Fix for footer being hidden when scrolling */
+/* Enhanced footer */
 footer {
     text-align: center;
     padding: 15px;
@@ -526,6 +540,10 @@ footer {
     width: 100%;
     height: 50px;
     z-index: 900;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
 }
 
 /* Utility classes */
@@ -552,13 +570,6 @@ footer {
     }
 }
 
-/* Add responsive adjustments for the grid layout in teacher dashboard */
-@media (max-width: 768px) {
-    #upload-form.login-form {
-        grid-template-columns: 1fr;
-    }
-}
-
 /* Print Styles */
 @media print {
     .no-print {
@@ -576,78 +587,99 @@ footer {
     }
 }
 
+/* Enhanced Performance Summary Cards */
 .performance-summary {
-    margin: 20px 0;
-    padding: 15px;
-    background-color: #f8f9fa;
-    border-radius: 5px;
+    margin: 20px 0 30px;
+    padding: 20px;
+    background-color: var(--color-white);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-soft);
+    border-left: 4px solid var(--color-forest-green);
 }
 
 .summary-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
-    margin-top: 10px;
+    gap: 20px;
+    margin-top: 15px;
 }
 
 .summary-item {
-    padding: 10px;
-    border-radius: 5px;
+    padding: 15px;
+    border-radius: var(--radius-md);
     text-align: center;
+    transition: transform var(--transition-fast);
+}
+
+.summary-item:hover {
+    transform: translateY(-3px);
 }
 
 .summary-count {
     display: block;
-    font-size: 24px;
+    font-size: 28px;
     font-weight: bold;
+    margin-bottom: 5px;
 }
 
 .summary-label {
     font-size: 14px;
+    font-weight: 500;
 }
 
 .exceeding {
     background-color: rgba(40, 167, 69, 0.1);
     border: 1px solid rgba(40, 167, 69, 0.3);
+    color: #1e7e34;
 }
+
 .meeting {
     background-color: rgba(23, 162, 184, 0.1);
     border: 1px solid rgba(23, 162, 184, 0.3);
+    color: #117a8b;
 }
+
 .approaching {
     background-color: rgba(255, 193, 7, 0.1);
     border: 1px solid rgba(255, 193, 7, 0.3);
+    color: #d39e00;
 }
+
 .below {
     background-color: rgba(220, 53, 69, 0.1);
     border: 1px solid rgba(220, 53, 69, 0.3);
+    color: #bd2130;
 }
 
-/* New Rules for Horizontal Scrolling and Table Styling in classteacher.html */
+/* Enhanced Table Styling for classteacher.html */
 
 /* Ensure the pupils-list container allows horizontal scrolling */
 .pupils-list {
     overflow-x: auto; /* Enable horizontal scrolling */
     white-space: nowrap; /* Prevent table content from wrapping */
+    padding: 2rem;
 }
 
 /* Style the table wrapper for scrolling */
 .table-wrapper {
     overflow-x: auto;
     width: 100%;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-medium);
 }
 
-/* Style the table to ensure it doesn’t shrink and allows scrolling */
+/* Style the table to ensure it doesn't shrink and allows scrolling */
 .pupils-list table {
     width: 100%;
     min-width: 1200px; /* Set a minimum width to ensure the table is wide enough for all columns */
     border-collapse: collapse;
+    margin: 0;
 }
 
 /* Style table headers and cells for better readability */
 .pupils-list th,
 .pupils-list td {
-    padding: 10px;
+    padding: 12px 15px;
     text-align: center;
     border: 1px solid var(--color-medium-gray);
 }
@@ -657,12 +689,16 @@ footer {
     background-color: var(--color-forest-green);
     color: var(--color-white);
     font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 /* Style the percentage cells */
 .percentage-cell {
     font-size: 0.9em;
     color: var(--color-text-dark);
+    font-weight: 500;
 }
 
 /* Ensure the dashboard card supports the wider layout */
@@ -671,14 +707,244 @@ footer {
     overflow-x: auto; /* Additional safeguard for scrolling */
 }
 
-/* Responsive adjustments for smaller screens */
-@media (max-width: 768px) {
-    .pupils-list table {
-        min-width: 800px; /* Smaller width for mobile */
+/* Enhanced Management Options in classteacher.html (Glassmorphism Effect) */
+.container ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 25px;
+    padding: 0;
+    margin: 30px 0;
+}
+
+.container ul li {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border-radius: var(--radius-md);
+    padding: 20px 30px;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    transition: transform var(--transition-fast), background var(--transition-fast);
+    min-width: 200px;
+    text-align: center;
+}
+
+.container ul li:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: var(--shadow-medium);
+    border-color: var(--color-forest-green);
+}
+
+.container ul li a {
+    color: var(--color-dark-green);
+    font-size: 1.1rem;
+    font-weight: 600;
+    transition: color var(--transition-fast);
+    display: block;
+    text-decoration: none;
+}
+
+.container ul li a:hover {
+    color: var(--color-bright-green);
+    text-decoration: none;
+}
+/* Manage Students Page Specific Styling */
+.manage-container {
+    max-width: 90%;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Two column layout for forms */
+.forms-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Form card styling */
+.form-card {
+    background-color: var(--color-white);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-soft);
+    border-top: 4px solid var(--color-forest-green);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-medium);
+}
+
+.form-card h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-medium-gray);
+    color: var(--color-forest-green);
+}
+
+/* Button styling for manage students page */
+.manage-btn {
+    background-color: var(--color-forest-green);
+    color: var(--color-white);
+    padding: 0.75rem 1.25rem;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-weight: 600;
+    transition: all var(--transition-fast);
+    min-width: unset;
+    display: inline-block;
+    margin-top: 1rem;
+}
+
+.manage-btn:hover {
+    background-color: var(--color-bright-green);
+    transform: translateY(-2px);
+}
+
+.delete-btn {
+    background-color: var(--color-error);
+    color: var(--color-white);
+    padding: 0.5rem 0.75rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.delete-btn:hover {
+    background-color: #c82333;
+}
+
+/* Educational level selector */
+.level-selector {
+    background-color: var(--color-white);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-soft);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.level-selector label {
+    margin-bottom: 0;
+    margin-right: 1rem;
+    display: inline-block;
+    font-weight: 600;
+    color: var(--color-forest-green);
+}
+
+.level-selector select {
+    min-width: 300px;
+    display: inline-block;
+}
+
+/* Students table styling */
+.students-section {
+    background-color: var(--color-white);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-soft);
+}
+
+.students-section h2 {
+    font-size: 1.75rem;
+    margin-bottom: 1.5rem;
+    color: var(--color-forest-green);
+}
+
+#student-filter {
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+}
+
+#student-filter label {
+    margin-bottom: 0;
+    margin-right: 1rem;
+    font-weight: 600;
+}
+
+#students-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#students-table th {
+    background-color: var(--color-forest-green);
+    color: var(--color-white);
+    padding: 1rem;
+    text-align: left;
+}
+
+#students-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--color-medium-gray);
+}
+
+#students-table tr:hover {
+    background-color: rgba(31, 125, 83, 0.05);
+}
+
+/* Message notification styling */
+#message-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    max-width: 300px;
+}
+
+.message {
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-medium);
+    animation: fadeOut 5s forwards;
+}
+
+.message-success {
+    background-color: #dff0d8;
+    border: 1px solid #d6e9c6;
+    color: #3c763d;
+}
+
+.message-error {
+    background-color: #f2dede;
+    border: 1px solid #ebccd1;
+    color: #a94442;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    70% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Grade status styling */
+.grade-status {
+    margin-left: 10px;
+    font-size: 0.9em;
+    display: inline-block;
+}
+
+/* Responsive adjustments for larger screens */
+@media (min-width: 1200px) {
+    .forms-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
-    .pupils-list th,
-    .pupils-list td {
-        padding: 5px; /* Reduce padding on smaller screens */
-        font-size: 0.9em;
-    }
+}
+
+/* Style for the "exists" class */
+.exists {
+    color: #888;
+    font-style: italic;
 }

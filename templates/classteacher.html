@@ -5,7 +5,7 @@
     <title>Class Teacher Dashboard - Hill View School</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
 </head>
 <body>
     <!-- Error Message Section -->
@@ -21,14 +21,30 @@
             <li class="nav-item"><a href="#" class="nav-link">Dashboard</a></li>
             <li class="nav-item"><a href="#" class="nav-link">Reports</a></li>
             <li class="nav-item"><a href="#" class="nav-link">Help</a></li>
-            <li class="nav-item"><a href="{{ url_for('index') }}" class="logout-btn">Logout</a></li>
+            <li class="nav-item"><a href="{{ url_for('logout') }}" class="logout-btn">Logout</a></li>
         </ul>
     </nav>
 
     <div class="container" style="max-width: 90%; margin-top: 80px;">
         <h1 class="text-center mb-4">Class Teacher Dashboard</h1>
 
+        <!-- Management Options Section -->
         <div class="dashboard-card">
+            <div class="card-header">
+                <span>Management Options</span>
+            </div>
+            <div class="management-links" style="padding: 20px;">
+                <ul>
+                    <li><a href="{{ url_for('manage_students') }}">Manage Students</a></li>
+                    <li><a href="{{ url_for('manage_subjects') }}">Manage Subjects</a></li>
+                    <li><a href="{{ url_for('manage_teachers') }}">Manage Teachers</a></li>
+                    <li><a href="{{ url_for('manage_grades_streams') }}">Manage Grades and Streams</a></li>
+                    <li><a href="{{ url_for('manage_terms_assessments') }}">Manage Terms and Assessment Types</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="dashboard-card mt-4">
             <div class="card-header">
                 <span>Upload Class Marks (All Subjects)</span>
                 <small>Complete all fields to process marks</small>
@@ -51,9 +67,9 @@
                     <label for="term">Term</label>
                     <select id="term" name="term" required>
                         <option value="">Select Term</option>
-                        <option value="term_1" {% if term == 'term_1' %}selected{% endif %}>Term 1</option>
-                        <option value="term_2" {% if term == 'term_2' %}selected{% endif %}>Term 2</option>
-                        <option value="term_3" {% if term == 'term_3' %}selected{% endif %}>Term 3</option>
+                        {% for term_option in terms %}
+                        <option value="{{ term_option }}" {% if term == term_option %}selected{% endif %}>{{ term_option }}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
@@ -61,9 +77,9 @@
                     <label for="assessment_type">Assessment Type</label>
                     <select id="assessment_type" name="assessment_type" required>
                         <option value="">Select Assessment Type</option>
-                        <option value="opener" {% if assessment_type == 'opener' %}selected{% endif %}>Opener Assessment</option>
-                        <option value="midterm" {% if assessment_type == 'midterm' %}selected{% endif %}>Midterm Assessment</option>
-                        <option value="endterm" {% if assessment_type == 'endterm' %}selected{% endif %}>Endterm Assessment</option>
+                        {% for assessment_option in assessment_types %}
+                        <option value="{{ assessment_option }}" {% if assessment_type == assessment_option %}selected{% endif %}>{{ assessment_option }}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
@@ -74,7 +90,7 @@
 
                 <div class="form-group">
                     <label for="grade">Grade</label>
-                    <select id="grade" name="grade" required onchange="updateStreams()">
+                    <select id="grade" name="grade" required onchange="fetchStreams()">
                         <option value="">Select Grade</option>
                         {% for grade_option in grades %}
                         <option value="{{ grade_option }}" {% if grade == grade_option %}selected{% endif %}>{{ grade_option }}</option>
@@ -86,11 +102,9 @@
                     <label for="stream">Stream</label>
                     <select id="stream" name="stream" required>
                         <option value="">Select Stream</option>
-                        {% if grade %}
-                            {% for stream_letter in ['B', 'G', 'Y'] %}
-                            <option value="{{ grade }}{{ stream_letter }}" {% if stream == grade ~ stream_letter %}selected{% endif %}>{{ grade }}{{ stream_letter }}</option>
-                            {% endfor %}
-                        {% endif %}
+                        {% for s in streams %}
+                        <option value="Stream {{ s.name }}" {% if stream == "Stream " ~ s.name %}selected{% endif %}>Stream {{ s.name }}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
@@ -169,7 +183,29 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Placeholder: Real data will be dynamically added here -->
+                        {% if recent_reports %}
+                        {% for report in recent_reports %}
+                        <tr>
+                            <td>{{ report.grade }}</td>
+                            <td>{{ report.stream }}</td>
+                            <td>{{ report.term }}</td>
+                            <td>{{ report.assessment_type }}</td>
+                            <td>{{ report.date }}</td>
+                            <td>
+                                <a href="{{ url_for('preview_class_report', grade=report.grade, stream=report.stream, term=report.term, assessment_type=report.assessment_type) }}" class="btn" style="background-color: #007BFF;">
+                                    Preview
+                                </a>
+                                <a href="{{ url_for('generate_class_pdf', grade=report.grade, stream=report.stream, term=report.term, assessment_type=report.assessment_type) }}" class="btn" style="background-color: #28A745; margin-left: 5px;">
+                                    Download
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="6" style="text-align: center;">No recent reports available.</td>
+                        </tr>
+                        {% endif %}
                     </tbody>
                 </table>
             </div>
@@ -240,8 +276,8 @@
             }
         }
 
-        // Function to update stream options based on selected grade
-        function updateStreams() {
+        // Function to fetch streams dynamically based on selected grade
+        function fetchStreams() {
             const grade = document.getElementById('grade').value;
             const streamSelect = document.getElementById('stream');
             const formGroup = streamSelect.closest('.form-group');
@@ -250,15 +286,31 @@
             streamSelect.innerHTML = '<option value="">Select Stream</option>';
             
             if (grade) {
-                const streams = ['B', 'G', 'Y'];
-                streams.forEach(streamLetter => {
-                    const option = document.createElement('option');
-                    option.value = grade + streamLetter;
-                    option.textContent = grade + streamLetter;
-                    streamSelect.appendChild(option);
-                });
-                formGroup.classList.add('success');
-                formGroup.classList.remove('error');
+                // Fetch the grade ID by matching the grade level
+                const gradeOptions = {{ grades | tojson }};
+                const selectedGrade = gradeOptions.find(g => g === grade);
+                if (!selectedGrade) {
+                    console.error('Grade not found:', grade);
+                    return;
+                }
+
+                // Fetch streams from the server
+                fetch(`/get_streams/${grade}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.streams.forEach(stream => {
+                            const option = document.createElement('option');
+                            option.value = `Stream ${stream.name}`;
+                            option.textContent = `Stream ${stream.name}`;
+                            streamSelect.appendChild(option);
+                        });
+                        formGroup.classList.add('success');
+                        formGroup.classList.remove('error');
+                    })
+                    .catch(error => {
+                        console.error('Error fetching streams:', error);
+                        formGroup.classList.add('error');
+                    });
             } else {
                 formGroup.classList.remove('success');
             }
@@ -277,6 +329,12 @@
                 percentageCell.textContent = percentage.toFixed(1) + '%';
             }
         }
+
+        // Initialize form validations on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateSubjects();
+            fetchStreams();
+        });
     </script>
 </body>
 </html>

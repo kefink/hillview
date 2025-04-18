@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Subjects - Hillview School (Class Teacher)</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Manage Subjects</h1>
+        <a href="{{ url_for('classteacher') }}">Back to Dashboard</a> | <a href="{{ url_for('logout') }}">Logout</a>
+
+        {% if error_message %}
+            <p class="error">{{ error_message }}</p>
+        {% endif %}
+        {% if success_message %}
+            <p class="success">{{ success_message }}</p>
+        {% endif %}
+
+        <h2>Add New Subject</h2>
+        <form method="POST" action="{{ url_for('manage_subjects') }}">
+            <label for="name">Subject Name:</label>
+            <input type="text" name="name" id="name" required><br>
+
+            <label for="education_level">Education Level:</label>
+            <select name="education_level" id="education_level" required>
+                <option value="">Select Education Level</option>
+                <option value="lower_primary">Lower Primary</option>
+                <option value="upper_primary">Upper Primary</option>
+                <option value="junior_secondary">Junior Secondary</option>
+            </select><br>
+
+            <button type="submit" name="add_subject">Add Subject</button>
+        </form>
+
+        <h2>Existing Subjects</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Education Level</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subject in subjects %}
+                    <tr>
+                        <td>{{ subject.id }}</td>
+                        <td>{{ subject.name }}</td>
+                        <td>{{ subject.education_level }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('manage_subjects') }}" style="display:inline;">
+                                <input type="hidden" name="subject_id" value="{{ subject.id }}">
+                                <button type="submit" name="delete_subject">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
