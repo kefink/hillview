@@ -8,74 +8,159 @@
 </head>
 <body>
     <div class="container">
-        <h1>Manage Grades and Streams</h1>
-        <a href="{{ url_for('classteacher') }}">Back to Dashboard</a> | <a href="{{ url_for('logout') }}">Logout</a>
+        <div class="manage-container">
+            <header class="page-header">
+                <h1>Manage Grades and Streams</h1>
+                <div class="nav-links">
+                    <a href="{{ url_for('classteacher') }}">Back to Dashboard</a> | 
+                    <a href="{{ url_for('logout') }}">Logout</a>
+                </div>
+            </header>
+            
+            <!-- Message container for notifications -->
+            <div id="message-container">
+                {% if error_message %}
+                    <div class="message message-error">{{ error_message }}</div>
+                {% endif %}
+                {% if success_message %}
+                    <div class="message message-success">{{ success_message }}</div>
+                {% endif %}
+            </div>
 
-        {% if error_message %}
-            <p class="error">{{ error_message }}</p>
-        {% endif %}
-        {% if success_message %}
-            <p class="success">{{ success_message }}</p>
-        {% endif %}
+            <div class="forms-grid">
+                <!-- Add Grade Form -->
+                <div class="form-card">
+                    <h2>Add New Grade</h2>
+                    <form method="POST" action="{{ url_for('manage_grades_streams') }}">
+                        <div class="form-group">
+                            <label for="grade_level">Grade Level (e.g., 1, 2, ...):</label>
+                            <input type="text" name="grade_level" id="grade_level" class="form-control" required>
+                        </div>
+                        
+                        <button type="submit" name="add_grade" class="manage-btn">Add Grade</button>
+                    </form>
+                
+                    <div class="form-divider"></div>
+                    
+                    <h2>Add New Stream</h2>
+                    <form method="POST" action="{{ url_for('manage_grades_streams') }}">
+                        <div class="form-group">
+                            <label for="stream_name">Stream Name (e.g., B, G, Y):</label>
+                            <input type="text" name="stream_name" id="stream_name" class="form-control" required>
+                        </div>
 
-        <h2>Add New Grade</h2>
-        <form method="POST" action="{{ url_for('manage_grades_streams') }}">
-            <label for="grade_level">Grade Level (e.g., 1, 2, ...):</label>
-            <input type="text" name="grade_level" id="grade_level" required><br>
-            <button type="submit" name="add_grade">Add Grade</button>
-        </form>
+                        <div class="form-group">
+                            <label for="grade_id">Grade:</label>
+                            <select name="grade_id" id="grade_id" class="form-control" required>
+                                <option value="">Select Grade</option>
+                                {% for grade in grades %}
+                                    <option value="{{ grade.id }}">{{ grade.level }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
 
-        <h2>Add New Stream</h2>
-        <form method="POST" action="{{ url_for('manage_grades_streams') }}">
-            <label for="stream_name">Stream Name (e.g., B, G, Y):</label>
-            <input type="text" name="stream_name" id="stream_name" required><br>
-
-            <label for="grade_id">Grade:</label>
-            <select name="grade_id" id="grade_id" required>
-                <option value="">Select Grade</option>
-                {% for grade in grades %}
-                    <option value="{{ grade.id }}">{{ grade.level }}</option>
-                {% endfor %}
-            </select><br>
-
-            <button type="submit" name="add_stream">Add Stream</button>
-        </form>
-
-        <h2>Existing Grades and Streams</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Grade ID</th>
-                    <th>Grade Level</th>
-                    <th>Streams</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for grade in grades %}
-                    <tr>
-                        <td>{{ grade.id }}</td>
-                        <td>{{ grade.level }}</td>
-                        <td>
-                            {% for stream in grade.streams %}
-                                {{ stream.name }} (ID: {{ stream.id }}) 
-                                <form method="POST" action="{{ url_for('manage_grades_streams') }}" style="display:inline;">
-                                    <input type="hidden" name="stream_id" value="{{ stream.id }}">
-                                    <button type="submit" name="delete_stream">Delete</button>
-                                </form>
-                                {% if not loop.last %}, {% endif %}
+                        <button type="submit" name="add_stream" class="manage-btn">Add Stream</button>
+                    </form>
+                </div>
+                
+                <!-- Tips section -->
+                <div class="form-card">
+                    <h2>Grade & Stream Management Tips</h2>
+                    <div class="tips-content">
+                        <p>Important guidelines for managing grades and streams:</p>
+                        <ul>
+                            <li>Use consistent naming conventions for grades (numbers 1-8)</li>
+                            <li>Use single letter designations for streams (B, G, Y, etc.)</li>
+                            <li>Before deleting a grade, ensure it has no associated streams</li>
+                            <li>Before deleting a stream, make sure no teachers or students are assigned to it</li>
+                            <li>Grade deletions will cascade and remove all associated streams</li>
+                            <li>Setting up proper grade and stream structure is essential for school organization</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Grades and Streams Table -->
+            <div class="students-section">
+                <h2>Existing Grades and Streams</h2>
+                <div id="student-filter">
+                    <label for="grade-search">Search grades:</label>
+                    <input type="text" id="grade-search" onkeyup="searchGrades()" placeholder="Type to search...">
+                </div>
+                
+                <div class="table-responsive">
+                    <table id="grades-table">
+                        <thead>
+                            <tr>
+                                <th>Grade ID</th>
+                                <th>Grade Level</th>
+                                <th>Streams</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for grade in grades %}
+                                <tr>
+                                    <td>{{ grade.id }}</td>
+                                    <td>{{ grade.level }}</td>
+                                    <td class="streams-cell">
+                                        {% if grade.streams %}
+                                            <div class="streams-list">
+                                                {% for stream in grade.streams %}
+                                                    <div class="stream-item">
+                                                        <span class="stream-name">{{ stream.name }}</span>
+                                                        <span class="stream-id">(ID: {{ stream.id }})</span>
+                                                        <form method="POST" action="{{ url_for('manage_grades_streams') }}" class="inline-form">
+                                                            <input type="hidden" name="stream_id" value="{{ stream.id }}">
+                                                            <button type="submit" name="delete_stream" class="delete-btn sm">Delete</button>
+                                                        </form>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        {% else %}
+                                            <span class="no-streams">No streams added</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('manage_grades_streams') }}">
+                                            <input type="hidden" name="grade_id" value="{{ grade.id }}">
+                                            <button type="submit" name="delete_grade" class="delete-btn">Delete Grade</button>
+                                        </form>
+                                    </td>
+                                </tr>
                             {% endfor %}
-                        </td>
-                        <td>
-                            <form method="POST" action="{{ url_for('manage_grades_streams') }}" style="display:inline;">
-                                <input type="hidden" name="grade_id" value="{{ grade.id }}">
-                                <button type="submit" name="delete_grade">Delete Grade</button>
-                            </form>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <script>
+        // Function to search grades by level
+        function searchGrades() {
+            const searchValue = document.getElementById('grade-search').value.toLowerCase();
+            const rows = document.querySelectorAll('#grades-table tbody tr');
+            
+            rows.forEach(row => {
+                const gradeLevel = row.cells[1].textContent.toLowerCase();
+                if (gradeLevel.includes(searchValue)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        // Function to auto-hide messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const messages = document.querySelectorAll('.message');
+                messages.forEach(message => {
+                    message.style.display = 'none';
+                });
+            }, 5000);
+        });
+    </script>
 </body>
 </html>

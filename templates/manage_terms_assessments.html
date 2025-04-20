@@ -5,82 +5,101 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Terms and Assessment Types - Hillview School (Class Teacher)</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/manage_terms.css') }}">
 </head>
 <body>
     <div class="container">
         <h1>Manage Terms and Assessment Types</h1>
-        <a href="{{ url_for('classteacher') }}">Back to Dashboard</a> | <a href="{{ url_for('logout') }}">Logout</a>
-
+        <div class="nav-links">
+            <a href="{{ url_for('classteacher') }}">Back to Dashboard</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+        
         {% if error_message %}
             <p class="error">{{ error_message }}</p>
         {% endif %}
+        
         {% if success_message %}
             <p class="success">{{ success_message }}</p>
         {% endif %}
-
-        <h2>Add New Term</h2>
-        <form method="POST" action="{{ url_for('manage_terms_assessments') }}">
-            <label for="term_name">Term Name (e.g., term_1):</label>
-            <input type="text" name="term_name" id="term_name" required><br>
-            <button type="submit" name="add_term">Add Term</button>
-        </form>
-
-        <h2>Add New Assessment Type</h2>
-        <form method="POST" action="{{ url_for('manage_terms_assessments') }}">
-            <label for="assessment_name">Assessment Type (e.g., midterm):</label>
-            <input type="text" name="assessment_name" id="assessment_name" required><br>
-            <button type="submit" name="add_assessment">Add Assessment Type</button>
-        </form>
-
-        <h2>Existing Terms</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for term in terms %}
-                    <tr>
-                        <td>{{ term.id }}</td>
-                        <td>{{ term.name }}</td>
-                        <td>
-                            <form method="POST" action="{{ url_for('manage_terms_assessments') }}" style="display:inline;">
-                                <input type="hidden" name="term_id" value="{{ term.id }}">
-                                <button type="submit" name="delete_term">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <h2>Existing Assessment Types</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for assessment in assessment_types %}
-                    <tr>
-                        <td>{{ assessment.id }}</td>
-                        <td>{{ assessment.name }}</td>
-                        <td>
-                            <form method="POST" action="{{ url_for('manage_terms_assessments') }}" style="display:inline;">
-                                <input type="hidden" name="assessment_id" value="{{ assessment.id }}">
-                                <button type="submit" name="delete_assessment">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        
+        <!-- Forms in a grid layout -->
+        <div class="forms-grid">
+            <div class="form-card">
+                <h2>Add New Term</h2>
+                <form method="POST" action="{{ url_for('manage_terms_assessments') }}">
+                    <label for="term_name">Term Name (e.g., term_1):</label>
+                    <input type="text" name="term_name" id="term_name" required>
+                    <button type="submit" name="add_term">Add Term</button>
+                </form>
+            </div>
+            
+            <div class="form-card">
+                <h2>Add New Assessment Type</h2>
+                <form method="POST" action="{{ url_for('manage_terms_assessments') }}">
+                    <label for="assessment_name">Assessment Type (e.g., midterm):</label>
+                    <input type="text" name="assessment_name" id="assessment_name" required>
+                    <button type="submit" name="add_assessment">Add Assessment Type</button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Tables in a grid layout -->
+        <div class="tables-grid">
+            <div class="table-card">
+                <h2>Existing Terms</h2>
+                <table id="terms-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for term in terms %}
+                            <tr>
+                                <td>{{ term.id }}</td>
+                                <td>{{ term.name }}</td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('manage_terms_assessments') }}" class="inline-form">
+                                        <input type="hidden" name="term_id" value="{{ term.id }}">
+                                        <button type="submit" name="delete_term" class="delete-btn">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="table-card">
+                <h2>Existing Assessment Types</h2>
+                <table id="assessment-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for assessment in assessment_types %}
+                            <tr>
+                                <td>{{ assessment.id }}</td>
+                                <td>{{ assessment.name }}</td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('manage_terms_assessments') }}" class="inline-form">
+                                        <input type="hidden" name="assessment_id" value="{{ assessment.id }}">
+                                        <button type="submit" name="delete_assessment" class="delete-btn">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </body>
 </html>

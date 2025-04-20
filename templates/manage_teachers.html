@@ -8,105 +8,144 @@
 </head>
 <body>
     <div class="container">
-        <h1>Manage Teachers</h1>
-        <a href="{{ url_for('classteacher') }}">Back to Dashboard</a> | <a href="{{ url_for('logout') }}">Logout</a>
-
-        {% if error_message %}
-            <p class="error-message">{{ error_message }}</p>
-        {% endif %}
-        {% if success_message %}
-            <p class="success-message">{{ success_message }}</p>
-        {% endif %}
-
-        <h2>Add New Teacher</h2>
-        <form method="POST" action="{{ url_for('manage_teachers') }}">
-            <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" name="username" id="username" required>
+        <div class="manage-container">
+            <header class="page-header">
+                <h1>Manage Teachers</h1>
+                <div class="nav-links">
+                    <a href="{{ url_for('classteacher') }}">Back to Dashboard</a> | 
+                    <a href="{{ url_for('logout') }}">Logout</a>
+                </div>
+            </header>
+            
+            <!-- Message container for notifications -->
+            <div id="message-container">
+                {% if error_message %}
+                    <div class="message message-error">{{ error_message }}</div>
+                {% endif %}
+                {% if success_message %}
+                    <div class="message message-success">{{ success_message }}</div>
+                {% endif %}
             </div>
 
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" name="password" id="password" required>
-            </div>
+            <div class="forms-grid">
+                <!-- Add Teacher Form -->
+                <div class="form-card">
+                    <h2>Add New Teacher</h2>
+                    <form method="POST" action="{{ url_for('manage_teachers') }}">
+                        <div class="form-group">
+                            <label for="username">Username:</label>
+                            <input type="text" name="username" id="username" class="form-control" required>
+                        </div>
 
-            <div class="form-group">
-                <label for="role">Role:</label>
-                <select name="role" id="role" required>
-                    <option value="">Select Role</option>
-                    <option value="teacher">Teacher</option>
-                    <option value="classteacher">Class Teacher</option>
-                    <option value="headteacher">Head Teacher</option>
-                </select>
-            </div>
+                        <div class="form-group">
+                            <label for="password">Password:</label>
+                            <input type="password" name="password" id="password" class="form-control" required>
+                        </div>
 
-            <div class="form-group">
-                <label for="subjects">Subjects (Hold Ctrl/Cmd to select multiple):</label>
-                <select name="subjects" id="subjects" multiple required>
-                    {% for subject in subjects %}
-                        <option value="{{ subject.id }}">{{ subject.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
+                        <div class="form-group">
+                            <label for="role">Role:</label>
+                            <select name="role" id="role" class="form-control" required>
+                                <option value="">Select Role</option>
+                                <option value="teacher">Teacher</option>
+                                <option value="classteacher">Class Teacher</option>
+                                <option value="headteacher">Head Teacher</option>
+                            </select>
+                        </div>
 
-            <div class="form-group">
-                <label for="grade">Grade:</label>
-                <select name="grade" id="grade" required onchange="updateStreams()">
-                    <option value="">Select Grade</option>
-                    {% for grade in grades %}
-                        <option value="{{ grade.id }}">{{ grade.level }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="stream">Stream:</label>
-                <select name="stream" id="stream" required>
-                    <option value="">Select Stream</option>
-                    <!-- Streams will be populated via JavaScript -->
-                </select>
-            </div>
-
-            <button type="submit" name="add_teacher" class="btn">Add Teacher</button>
-        </form>
-
-        <h2>Existing Teachers</h2>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Username</th>
-                        <th>Role</th>
-                        <th>Subjects</th>
-                        <th>Grade</th>
-                        <th>Stream</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for teacher in teachers %}
-                        <tr>
-                            <td>{{ teacher.id }}</td>
-                            <td>{{ teacher.username }}</td>
-                            <td>{{ teacher.role }}</td>
-                            <td>
-                                {% for subject in teacher.subjects %}
-                                    {{ subject.name }}{% if not loop.last %}, {% endif %}
+                        <div class="form-group">
+                            <label for="subjects">Subjects (Hold Ctrl/Cmd to select multiple):</label>
+                            <select name="subjects" id="subjects" multiple class="form-control multi-select" required>
+                                {% for subject in subjects %}
+                                    <option value="{{ subject.id }}">{{ subject.name }}</option>
                                 {% endfor %}
-                            </td>
-                            <td>{{ teacher.stream.grade.level if teacher.stream else 'N/A' }}</td>
-                            <td>{{ teacher.stream.name if teacher.stream else 'N/A' }}</td>
-                            <td>
-                                <form method="POST" action="{{ url_for('manage_teachers') }}" style="display:inline;">
-                                    <input type="hidden" name="teacher_id" value="{{ teacher.id }}">
-                                    <button type="submit" name="delete_teacher" class="btn btn-secondary">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="grade">Grade:</label>
+                            <select name="grade" id="grade" class="form-control" required onchange="updateStreams()">
+                                <option value="">Select Grade</option>
+                                {% for grade in grades %}
+                                    <option value="{{ grade.id }}">{{ grade.level }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="stream">Stream:</label>
+                            <select name="stream" id="stream" class="form-control" required>
+                                <option value="">Select Stream</option>
+                                <!-- Streams will be populated via JavaScript -->
+                            </select>
+                        </div>
+
+                        <button type="submit" name="add_teacher" class="manage-btn">Add Teacher</button>
+                    </form>
+                </div>
+                
+                <!-- This is the second column for tips -->
+                <div class="form-card">
+                    <h2>Teacher Management Tips</h2>
+                    <div class="tips-content">
+                        <p>Here are some tips for managing teachers effectively:</p>
+                        <ul>
+                            <li>Create unique usernames for each teacher account</li>
+                            <li>Ensure passwords are secure but easy to remember</li>
+                            <li>Assign appropriate subjects based on teacher specialization</li>
+                            <li>Be careful when deleting teacher accounts - this will remove all associated data</li>
+                            <li>Teachers must be assigned to a grade and stream to access class information</li>
+                            <li>Different roles have different levels of access in the system</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Teachers Table -->
+            <div class="students-section">
+                <h2>Existing Teachers</h2>
+                <div id="student-filter">
+                    <label for="teacher-search">Search teachers:</label>
+                    <input type="text" id="teacher-search" onkeyup="searchTeachers()" placeholder="Type to search...">
+                </div>
+                
+                <div class="table-responsive">
+                    <table id="teachers-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Subjects</th>
+                                <th>Grade</th>
+                                <th>Stream</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for teacher in teachers %}
+                                <tr>
+                                    <td>{{ teacher.id }}</td>
+                                    <td>{{ teacher.username }}</td>
+                                    <td>{{ teacher.role }}</td>
+                                    <td>
+                                        {% for subject in teacher.subjects %}
+                                            {{ subject.name }}{% if not loop.last %}, {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                    <td>{{ teacher.stream.grade.level if teacher.stream else 'N/A' }}</td>
+                                    <td>{{ teacher.stream.name if teacher.stream else 'N/A' }}</td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('manage_teachers') }}" style="display:inline;">
+                                            <input type="hidden" name="teacher_id" value="{{ teacher.id }}">
+                                            <button type="submit" name="delete_teacher" class="delete-btn">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -135,6 +174,31 @@
                     });
             }
         }
+        
+        // Function to search teachers by username
+        function searchTeachers() {
+            const searchValue = document.getElementById('teacher-search').value.toLowerCase();
+            const rows = document.querySelectorAll('#teachers-table tbody tr');
+            
+            rows.forEach(row => {
+                const teacherName = row.cells[1].textContent.toLowerCase();
+                if (teacherName.includes(searchValue)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        // Function to auto-hide messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const messages = document.querySelectorAll('.message');
+                messages.forEach(message => {
+                    message.style.display = 'none';
+                });
+            }, 5000);
+        });
     </script>
 </body>
 </html>

@@ -8,7 +8,8 @@ from datetime import datetime
 from collections import defaultdict
 import os
 import zipfile
-from io import BytesIO
+from io import BytesIO, StringIO
+import pandas as pd
 
 # Import the models
 from models import db, Subject, Teacher, Grade, Stream, Term, AssessmentType, Student, Mark
@@ -190,6 +191,7 @@ def admin_login():
         if teacher:
             session['teacher_id'] = teacher.id
             session['role'] = 'headteacher'
+            session.permanent = True
             return redirect(url_for("headteacher"))
         return render_template("admin_login.html", error="Invalid credentials")
     return render_template("admin_login.html")
@@ -203,20 +205,28 @@ def teacher_login():
         if teacher:
             session['teacher_id'] = teacher.id
             session['role'] = 'teacher'
+            session.permanent = True
             return redirect(url_for("teacher"))
         return render_template("teacher_login.html", error="Invalid credentials")
     return render_template("teacher_login.html")
 
 @app.route("/classteacher_login", methods=["GET", "POST"])
 def classteacher_login():
+    print("Request method:", request.method)
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "").strip()
+        print("Username:", username)
+        print("Password:", password)
         teacher = Teacher.query.filter_by(username=username, password=password, role="classteacher").first()
         if teacher:
+            print("Teacher found:", teacher.username)
             session['teacher_id'] = teacher.id
             session['role'] = 'classteacher'
+            session.permanent = True
+            print("Session:", session)
             return redirect(url_for("classteacher"))
+        print("No teacher found")
         return render_template("classteacher_login.html", error="Invalid credentials")
     return render_template("classteacher_login.html")
 
@@ -226,13 +236,13 @@ def teacher():
         return redirect(url_for('teacher_login'))
 
     grades = [grade.level for grade in Grade.query.all()]
+    grades_dict = {grade.level: grade.id for grade in Grade.query.all()}  # Mapping of grade levels to IDs
     subjects = [subject.name for subject in Subject.query.all()]
     terms = [term.name for term in Term.query.all()]
     assessment_types = [assessment_type.name for assessment_type in AssessmentType.query.all()]
     error_message = None
     show_students = False
     students = []
-    education_level = ""
     subject = ""
     grade = ""
     stream = ""
@@ -240,10 +250,26 @@ def teacher():
     assessment_type = ""
     total_marks = 0
     show_download_button = False
-    report_key = None
+
+    # Fetch recent reports (last 5 unique grade/stream/term/assessment combinations)
+    recent_reports = []
+    marks = Mark.query.join(Student).join(Stream).join(Grade).join(Term).join(AssessmentType).all()
+    seen_combinations = set()
+    for mark in marks:
+        combination = (mark.student.stream.grade.level, mark.student.stream.name, mark.term.name, mark.assessment_type.name)
+        if combination not in seen_combinations:
+            seen_combinations.add(combination)
+            recent_reports.append({
+                'grade': mark.student.stream.grade.level,
+                'stream': f"Stream {mark.student.stream.name}",
+                'term': mark.term.name,
+                'assessment_type': mark.assessment_type.name,
+                'date': mark.created_at.strftime('%Y-%m-%d') if mark.created_at else 'N/A'
+            })
+            if len(recent_reports) >= 5:  # Limit to 5 recent reports
+                break
 
     if request.method == "POST":
-        education_level = request.form.get("education_level", "")
         subject = request.form.get("subject", "")
         grade = request.form.get("grade", "")
         stream = request.form.get("stream", "")
@@ -255,7 +281,7 @@ def teacher():
             total_marks = 0
 
         if "upload_marks" in request.form:
-            if not all([education_level, subject, grade, stream, term, assessment_type, total_marks > 0]):
+            if not all([subject, grade, stream, term, assessment_type, total_marks > 0]):
                 error_message = "Please fill in all fields before uploading marks"
             else:
                 stream_obj = Stream.query.join(Grade).filter(Grade.level == grade, Stream.name == stream[-1]).first()
@@ -266,7 +292,7 @@ def teacher():
                     error_message = f"No students found for grade {grade} stream {stream[-1]}"
 
         elif "submit_marks" in request.form:
-            if not all([education_level, subject, grade, stream, term, assessment_type, total_marks > 0]):
+            if not all([subject, grade, stream, term, assessment_type, total_marks > 0]):
                 error_message = "Please fill in all fields before submitting marks"
             else:
                 stream_obj = Stream.query.join(Grade).filter(Grade.level == grade, Stream.name == stream[-1]).first()
@@ -322,7 +348,7 @@ def teacher():
                             mean_percentage=mean_percentage,
                             mean_performance=mean_performance,
                             performance_summary=performance_summary,
-                            education_level=education_level_names.get(education_level, education_level),
+                            education_level="",
                             subject=subject,
                             grade=grade,
                             stream=stream,
@@ -334,11 +360,11 @@ def teacher():
     return render_template(
         "teacher.html",
         grades=grades,
+        grades_dict=grades_dict,
         subjects=subjects,
         terms=terms,
         assessment_types=assessment_types,
         students=students,
-        education_level=education_level,
         subject=subject,
         grade=grade,
         stream=stream,
@@ -347,7 +373,8 @@ def teacher():
         total_marks=total_marks,
         show_students=show_students,
         error_message=error_message,
-        show_download_button=show_download_button
+        show_download_button=show_download_button,
+        recent_reports=recent_reports
     )
 
 @app.route("/classteacher", methods=["GET", "POST"])
@@ -574,8 +601,12 @@ def headteacher():
 
 @app.route("/get_streams/<grade_id>", methods=["GET"])
 def get_streams(grade_id):
-    streams = Stream.query.filter_by(grade_id=grade_id).all()
-    return jsonify({"streams": [{"id": stream.id, "name": stream.name} for stream in streams]})
+    try:
+        grade_id = int(grade_id)
+        streams = Stream.query.filter_by(grade_id=grade_id).all()
+        return jsonify({"streams": [{"id": stream.id, "name": stream.name} for stream in streams]})
+    except ValueError:
+        return jsonify({"streams": [], "error": "Invalid grade ID"}), 400
 
 @app.route("/manage_students", methods=["GET", "POST"])
 def manage_students():
@@ -698,18 +729,23 @@ def manage_students():
                 error_message = "No file uploaded."
             else:
                 file = request.files['student_file']
-                if not file.filename.endswith('.csv'):
-                    error_message = "Only CSV files are supported."
+                if not (file.filename.endswith('.csv') or file.filename.endswith('.xlsx')):
+                    error_message = "Only CSV and Excel (.xlsx) files are supported."
                 else:
                     try:
-                        # Read the CSV file
-                        stream = StringIO(file.stream.read().decode("utf-8"))
-                        df = pd.read_csv(stream)
+                        # Read the file based on its extension
+                        if file.filename.endswith('.csv'):
+                            # Read CSV file
+                            stream = StringIO(file.stream.read().decode("utf-8"))
+                            df = pd.read_csv(stream)
+                        else:
+                            # Read Excel file
+                            df = pd.read_excel(file, engine='openpyxl')
 
                         # Validate required columns
                         required_columns = ['name', 'grade', 'admission_number']
                         if not all(col in df.columns for col in required_columns):
-                            error_message = "CSV must contain 'name', 'grade', and 'admission_number' columns. Optional: 'stream'."
+                            error_message = "File must contain 'name', 'grade', and 'admission_number' columns. Optional: 'stream'."
                         else:
                             # Track successful and failed uploads
                             success_count = 0
@@ -722,14 +758,17 @@ def manage_students():
                                 stream_name = row.get('stream', None)  # Stream is optional
 
                                 # Validate name
-                                if not name or not isinstance(name, str):
+                                if pd.isna(name) or not isinstance(name, str) or not name.strip():
                                     errors.append(f"Row {index + 2}: Invalid or missing name.")
                                     continue
 
                                 # Validate admission number
-                                if not admission_number or not isinstance(admission_number, str):
+                                if pd.isna(admission_number) or not str(admission_number).strip():
                                     errors.append(f"Row {index + 2}: Invalid or missing admission number.")
                                     continue
+
+                                # Convert admission number to string (in case it's a number)
+                                admission_number = str(admission_number)
 
                                 # Check if admission number is unique
                                 existing_student = Student.query.filter_by(admission_number=admission_number).first()
@@ -745,7 +784,7 @@ def manage_students():
 
                                 # Validate stream (if provided)
                                 stream_id = None
-                                if stream_name:
+                                if stream_name and not pd.isna(stream_name):
                                     stream = Stream.query.filter_by(name=stream_name, grade_id=grade.id).first()
                                     if not stream:
                                         errors.append(f"Row {index + 2}: Stream '{stream_name}' does not exist for grade '{grade_name}'.")
@@ -778,11 +817,11 @@ def manage_students():
                             if errors:
                                 error_message = "Some students could not be added:\n" + "\n".join(errors)
                             if success_count == 0 and not errors:
-                                error_message = "No students were added. Please check the CSV file."
+                                error_message = "No students were added. Please check the file."
 
                     except Exception as e:
                         db.session.rollback()
-                        error_message = f"Error processing CSV file: {str(e)}"
+                        error_message = f"Error processing file: {str(e)}"
 
         # Delete a Student
         elif action == 'delete_student':
@@ -846,6 +885,7 @@ def manage_students():
                            selected_level=selected_level,
                            error_message=error_message, 
                            success_message=success_message)
+
 @app.route("/manage_subjects", methods=["GET", "POST"])
 def manage_subjects():
     if 'teacher_id' not in session or session['role'] != 'classteacher':

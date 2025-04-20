@@ -5,7 +5,7 @@
     <title>Teacher Dashboard - Hill View School</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
 </head>
 <body>
     <!-- Error Message Section -->
@@ -18,14 +18,12 @@
     <nav class="navbar">
         <a href="#" class="navbar-brand">Hill View School</a>
         <ul class="navbar-nav">
-            <li class="nav-item"><a href="#" class="nav-link">Dashboard</a></li>
-            <li class="nav-item"><a href="#" class="nav-link">Reports</a></li>
-            <li class="nav-item"><a href="#" class="nav-link">Help</a></li>
-            <li class="nav-item"><a href="{{ url_for('index') }}" class="logout-btn">Logout</a></li>
+            <li class="nav-item"><a href="{{ url_for('teacher') }}" class="nav-link">Dashboard</a></li>
+            <li class="nav-item"><a href="{{ url_for('logout') }}" class="logout-btn">Logout</a></li>
         </ul>
     </nav>
 
-    <div class="container" style="max-width: var(--container-lg); margin-top: 80px;">
+    <div class="container" style="max-width: 90%; margin-top: 80px;">
         <h1 class="text-center mb-4">Teacher Dashboard</h1>
 
         <div class="dashboard-card">
@@ -38,34 +36,12 @@
             <!-- Initial form to select grade and class -->
             <form id="upload-form" method="POST" action="{{ url_for('teacher') }}" class="login-form">
                 <div class="form-group">
-                    <label for="education_level">Education Level</label>
-                    <select id="education_level" name="education_level" required onchange="updateSubjects()">
-                        <option value="">Select Education Level</option>
-                        <option value="lower_primary" {% if education_level == 'lower_primary' %}selected{% endif %}>Lower Primary</option>
-                        <option value="upper_primary" {% if education_level == 'upper_primary' %}selected{% endif %}>Upper Primary</option>
-                        <option value="junior_secondary" {% if education_level == 'junior_secondary' %}selected{% endif %}>Junior Secondary</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
                     <label for="subject">Subject</label>
                     <select id="subject" name="subject" required>
                         <option value="">Select Subject</option>
-                        {% if education_level %}
-                            {% if education_level == 'lower_primary' %}
-                                {% for subject_option in ['Indigenous Language', 'Kiswahili', 'Mathematics', 'English', 'Religious Education', 'Environmental Activities', 'Creative Activities'] %}
-                                    <option value="{{ subject_option }}" {% if subject == subject_option %}selected{% endif %}>{{ subject_option }}</option>
-                                {% endfor %}
-                            {% elif education_level == 'upper_primary' %}
-                                {% for subject_option in ['English', 'Mathematics', 'Kiswahili', 'Religious Education', 'Agriculture and Nutrition', 'Social Studies', 'Creative Arts', 'Science and Technology'] %}
-                                    <option value="{{ subject_option }}" {% if subject == subject_option %}selected{% endif %}>{{ subject_option }}</option>
-                                {% endfor %}
-                            {% elif education_level == 'junior_secondary' %}
-                                {% for subject_option in ['Social Studies and Life Skills', 'Agriculture and Home Science', 'Integrated Science and Health Education', 'Pre-Technical Studies', 'Visual Arts', 'Mathematics', 'English', 'Kiswahili', 'Religious Education'] %}
-                                    <option value="{{ subject_option }}" {% if subject == subject_option %}selected{% endif %}>{{ subject_option }}</option>
-                                {% endfor %}
-                            {% endif %}
-                        {% endif %}
+                        {% for subject_option in subjects %}
+                        <option value="{{ subject_option }}" {% if subject == subject_option %}selected{% endif %}>{{ subject_option }}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
@@ -73,9 +49,9 @@
                     <label for="term">Term</label>
                     <select id="term" name="term" required>
                         <option value="">Select Term</option>
-                        <option value="term_1" {% if term == 'term_1' %}selected{% endif %}>Term 1</option>
-                        <option value="term_2" {% if term == 'term_2' %}selected{% endif %}>Term 2</option>
-                        <option value="term_3" {% if term == 'term_3' %}selected{% endif %}>Term 3</option>
+                        {% for term_option in terms %}
+                        <option value="{{ term_option }}" {% if term == term_option %}selected{% endif %}>{{ term_option }}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
@@ -83,9 +59,9 @@
                     <label for="assessment_type">Assessment Type</label>
                     <select id="assessment_type" name="assessment_type" required>
                         <option value="">Select Assessment Type</option>
-                        <option value="opener" {% if assessment_type == 'opener' %}selected{% endif %}>Opener Assessment</option>
-                        <option value="midterm" {% if assessment_type == 'midterm' %}selected{% endif %}>Midterm Assessment</option>
-                        <option value="endterm" {% if assessment_type == 'endterm' %}selected{% endif %}>Endterm Assessment</option>
+                        {% for assessment_option in assessment_types %}
+                        <option value="{{ assessment_option }}" {% if assessment_type == assessment_option %}selected{% endif %}>{{ assessment_option }}</option>
+                        {% endfor %}
                     </select>
                 </div>
 
@@ -108,11 +84,7 @@
                     <label for="stream">Stream</label>
                     <select id="stream" name="stream" required>
                         <option value="">Select Stream</option>
-                        {% if grade %}
-                            {% for stream_letter in ['B', 'G', 'Y'] %}
-                            <option value="{{ grade }}{{ stream_letter }}" {% if stream == grade ~ stream_letter %}selected{% endif %}>{{ grade }}{{ stream_letter }}</option>
-                            {% endfor %}
-                        {% endif %}
+                        <!-- Streams will be populated dynamically via JavaScript -->
                     </select>
                 </div>
 
@@ -129,10 +101,9 @@
 
                 <form method="POST" action="{{ url_for('teacher') }}">
                     <!-- Keep existing form fields as hidden fields -->
-                    <input type="hidden" name="education_level" value="{{ education_level }}">
                     <input type="hidden" name="subject" value="{{ subject }}">
                     <input type="hidden" name="grade" value="{{ grade }}">
-                    <input type="hidden" name="stream" value="{{ stream }}">
+                    <input type="hidden" name="stream" value="{{ stream[-1] }}">
                     <input type="hidden" name="term" value="{{ term }}">
                     <input type="hidden" name="assessment_type" value="{{ assessment_type }}">
                     <input type="hidden" name="total_marks" value="{{ total_marks }}">
@@ -151,9 +122,10 @@
                                 <td>{{ student }}</td>
                                 <td>
                                     <input type="number" name="mark_{{ student.replace(' ', '_') }}" min="0" max="{{ total_marks }}" required 
-                                           oninput="updatePercentage(this)">
+                                           oninput="updatePercentage(this, '{{ student.replace(' ', '_') }}')">
+                                    <div id="percentage_{{ student.replace(' ', '_') }}" class="percentage-cell">0%</div>
                                 </td>
-                                <td class="percentage-cell" id="percentage_{{ student.replace(' ', '_') }}">0%</td>
+                                <td class="percentage-cell" id="percentage_display_{{ student.replace(' ', '_') }}">0%</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -179,32 +151,51 @@
                         <tr>
                             <th>Grade</th>
                             <th>Stream</th>
-                            <th>Subject</th>
+                            <th>Term</th>
                             <th>Assessment</th>
                             <th>Date</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- Placeholder: Real data will be dynamically added here -->
+                        {% if recent_reports %}
+                        {% for report in recent_reports %}
+                        <tr>
+                            <td>{{ report.grade }}</td>
+                            <td>{{ report.stream }}</td>
+                            <td>{{ report.term }}</td>
+                            <td>{{ report.assessment_type }}</td>
+                            <td>{{ report.date }}</td>
+                            <td>
+                                <a href="{{ url_for('preview_class_report', grade=report.grade, stream=report.stream, term=report.term, assessment_type=report.assessment_type) }}" class="btn" style="background-color: #007BFF;">
+                                    Preview
+                                </a>
+                                <a href="{{ url_for('generate_class_pdf', grade=report.grade, stream=report.stream, term=report.term, assessment_type=report.assessment_type) }}" class="btn" style="background-color: #28A745; margin-left: 5px;">
+                                    Download
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="6" style="text-align: center;">No recent reports available.</td>
+                        </tr>
+                        {% endif %}
                     </tbody>
                 </table>
-            </div>
-        </div>
-        <div class="dashboard-card mt-4">
-            <div class="card-header">Quick Stats</div>
-            <div class="stats-container">
-                <!-- Placeholder: Real stats will be dynamically added here -->
             </div>
         </div>
 
         <!-- Conditional Download PDF Report Section -->
         {% if show_download_button %}
         <div class="text-center mt-4">
-            <a href="{{ url_for('generate_pdf', grade=grade, stream=stream, subject=subject) }}" class="btn">
-                Download PDF Report
+            <a href="{{ url_for('preview_class_report', grade=grade, stream=stream, term=term, assessment_type=assessment_type) }}" class="btn" style="background-color: #007BFF; margin-right: 10px;">
+                Preview Class Report
             </a>
-            <p>Click above to download a PDF copy of this report.</p>
+            <a href="{{ url_for('generate_class_pdf', grade=grade, stream=stream, term=term, assessment_type=assessment_type) }}" class="btn">
+                Download Class PDF Report
+            </a>
+            <p>Click above to preview or download a PDF copy of the class report.</p>
         </div>
         {% endif %}
     </div>
@@ -214,74 +205,64 @@
     </footer>
 
     <script>
-        // Function to update subject options based on education level
-        function updateSubjects() {
-            const educationLevel = document.getElementById('education_level').value;
-            const subjectSelect = document.getElementById('subject');
-            
-            // Clear existing options
-            subjectSelect.innerHTML = '<option value="">Select Subject</option>';
-            
-            if (educationLevel === 'lower_primary') {
-                const subjects = ['Indigenous Language', 'Kiswahili', 'Mathematics', 'English', 'Religious Education', 'Environmental Activities', 'Creative Activities'];
-                subjects.forEach(subject => {
-                    const option = document.createElement('option');
-                    option.value = subject;
-                    option.textContent = subject;
-                    subjectSelect.appendChild(option);
-                });
-            } else if (educationLevel === 'upper_primary') {
-                const subjects = ['English', 'Mathematics', 'Kiswahili', 'Religious Education', 'Agriculture and Nutrition', 'Social Studies', 'Creative Arts', 'Science and Technology'];
-                subjects.forEach(subject => {
-                    const option = document.createElement('option');
-                    option.value = subject;
-                    option.textContent = subject;
-                    subjectSelect.appendChild(option);
-                });
-            } else if (educationLevel === 'junior_secondary') {
-                const subjects = ['Social Studies and Life Skills', 'Agriculture and Home Science', 'Integrated Science and Health Education', 'Pre-Technical Studies', 'Visual Arts', 'Mathematics', 'English', 'Kiswahili', 'Religious Education'];
-                subjects.forEach(subject => {
-                    const option = document.createElement('option');
-                    option.value = subject;
-                    option.textContent = subject;
-                    subjectSelect.appendChild(option);
-                });
-            }
-        }
-
-        // Function to update stream options based on selected grade
+        // Function to update stream options based on selected grade using AJAX
         function updateStreams() {
-            const grade = document.getElementById('grade').value;
+            const gradeSelect = document.getElementById('grade');
             const streamSelect = document.getElementById('stream');
-            
+            const grade = gradeSelect.value;
+
             // Clear existing options
             streamSelect.innerHTML = '<option value="">Select Stream</option>';
-            
+
             if (grade) {
-                const streams = ['B', 'G', 'Y'];
-                streams.forEach(streamLetter => {
-                    const option = document.createElement('option');
-                    option.value = grade + streamLetter;
-                    option.textContent = grade + streamLetter;
-                    streamSelect.appendChild(option);
-                });
+                // Map grade level to grade_id using grades_dict (we'll pass this from app.py)
+                const gradesDict = {
+                    {% for grade_option in grades %}
+                    "{{ grade_option }}": {{ loop.index }},
+                    {% endfor %}
+                };
+                const gradeId = gradesDict[grade];
+
+                // Fetch streams via AJAX
+                fetch(`/get_streams/${gradeId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.streams.forEach(stream => {
+                            const option = document.createElement('option');
+                            option.value = stream.name; // Store just the stream letter (e.g., "A")
+                            option.textContent = `Stream ${stream.name}`; // Display as "Stream A"
+                            streamSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching streams:', error);
+                        streamSelect.innerHTML = '<option value="">Error loading streams</option>';
+                    });
             }
         }
 
         // Function to update percentage in real-time as marks are entered
-        function updatePercentage(inputElement) {
+        function updatePercentage(inputElement, studentId) {
             const totalMarks = parseInt(document.getElementsByName('total_marks')[0].value);
             const mark = parseInt(inputElement.value) || 0;
             const percentage = (mark / totalMarks) * 100;
-            
-            // Find the corresponding percentage cell
-            const studentId = inputElement.name.replace('mark_', '');
+
+            // Update both hidden and display percentage cells
             const percentageCell = document.getElementById(`percentage_${studentId}`);
-            
+            const percentageDisplayCell = document.getElementById(`percentage_display_${studentId}`);
+
             if (percentageCell) {
                 percentageCell.textContent = percentage.toFixed(1) + '%';
             }
+            if (percentageDisplayCell) {
+                percentageDisplayCell.textContent = percentage.toFixed(1) + '%';
+            }
         }
+
+        // Initialize form validations on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateStreams();
+        });
     </script>
 </body>
 </html>

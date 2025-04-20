@@ -948,3 +948,567 @@ footer {
     color: #888;
     font-style: italic;
 }
+/* Manage Subjects responsive styling improvements */
+
+/* Main container - improve responsive width */
+.container {
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+.manage-container {
+    width: 90%;
+    max-width: 1600px; /* Increased from 1200px */
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Header section improvements */
+.manage-container h1 {
+    color: var(--color-forest-green);
+    margin-bottom: 1.5rem;
+    font-size: 2.2rem; /* Larger title for desktop */
+}
+
+.nav-links {
+    margin-bottom: 2.5rem;
+    font-size: 1.1rem;
+}
+
+/* Level selector - better utilize horizontal space */
+.level-selector {
+    background-color: var(--color-white);
+    border-radius: var(--radius-md);
+    padding: 1.5rem 2rem;
+    box-shadow: var(--shadow-soft);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Align to left */
+}
+
+.level-selector select {
+    width: 300px;
+    padding: 0.75rem;
+    font-size: 1rem;
+}
+
+/* Forms grid - better spacing for desktop */
+.forms-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+    margin-bottom: 2.5rem;
+}
+
+/* Form cards - better use of space */
+.form-card {
+    background-color: var(--color-white);
+    border-radius: var(--radius-md);
+    padding: 2.5rem;
+    box-shadow: var(--shadow-soft);
+    border-top: 4px solid var(--color-forest-green);
+    height: 100%;
+    min-height: 350px; /* Ensure consistent height */
+}
+
+.form-card h2 {
+    font-size: 1.6rem;
+    margin-bottom: 1.75rem;
+}
+
+/* Table section improvements */
+.students-section {
+    background-color: var(--color-white);
+    border-radius: var(--radius-md);
+    padding: 2rem;
+    box-shadow: var(--shadow-soft);
+    overflow-x: auto; /* Handle table overflow */
+}
+
+.students-section h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1.75rem;
+}
+
+/* Search filter improvements */
+#student-filter {
+    margin-bottom: 1.75rem;
+    display: flex;
+    align-items: center;
+}
+
+#subject-search {
+    padding: 0.75rem;
+    width: 350px; /* Wider search on desktop */
+    font-size: 1rem;
+}
+
+/* Table improvements for desktop */
+#subjects-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* More stable layout */
+}
+
+#subjects-table th {
+    padding: 1.25rem;
+    font-size: 1.1rem;
+}
+
+#subjects-table td {
+    padding: 1rem 1.25rem;
+}
+
+/* Custom column widths */
+#subjects-table th:nth-child(1),
+#subjects-table td:nth-child(1) {
+    width: 10%;
+}
+
+#subjects-table th:nth-child(2),
+#subjects-table td:nth-child(2) {
+    width: 30%;
+}
+
+#subjects-table th:nth-child(3),
+#subjects-table td:nth-child(3) {
+    width: 40%;
+}
+
+#subjects-table th:nth-child(4),
+#subjects-table td:nth-child(4) {
+    width: 20%;
+    text-align: center;
+}
+
+/* Responsive breakpoints - refine for desktop first */
+@media (min-width: 1200px) {
+    .forms-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .manage-container {
+        width: 85%;
+    }
+}
+
+@media (min-width: 1600px) {
+    .manage-container {
+        width: 80%;
+        max-width: 1800px;
+    }
+}
+
+/* Manage Teachers specific styling */
+
+/* Add this to your existing CSS file */
+
+/* Multi-select styling - for the subjects selector */
+.multi-select {
+    height: auto;
+    min-height: 120px;
+}
+
+/* Table column widths specific to teachers table */
+#teachers-table th:nth-child(1),
+#teachers-table td:nth-child(1) {
+    width: 5%;
+}
+
+#teachers-table th:nth-child(2),
+#teachers-table td:nth-child(2) {
+    width: 15%;
+}
+
+#teachers-table th:nth-child(3),
+#teachers-table td:nth-child(3) {
+    width: 10%;
+}
+
+#teachers-table th:nth-child(4),
+#teachers-table td:nth-child(4) {
+    width: 30%;
+}
+
+#teachers-table th:nth-child(5),
+#teachers-table td:nth-child(5),
+#teachers-table th:nth-child(6),
+#teachers-table td:nth-child(6) {
+    width: 15%;
+}
+
+#teachers-table th:nth-child(7),
+#teachers-table td:nth-child(7) {
+    width: 10%;
+    text-align: center;
+}
+
+/* Form layout for teachers - ensure good spacing */
+.form-card form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+/* For the teachers form specifically which has more fields */
+.form-card form .form-group label {
+    margin-bottom: 0.5rem;
+    display: block;
+    font-weight: 600;
+}
+
+/* Responsive adjustment for the forms-grid on teacher page */
+@media (min-width: 1200px) {
+    /* Make the form slightly wider than the tips on this page */
+    .forms-grid {
+        grid-template-columns: 60% 40%;
+    }
+}
+
+/* Style for role indicators */
+td:nth-child(3) {
+    text-transform: capitalize;
+}
+
+/* Focus styles for the multiple select */
+.multi-select:focus {
+    outline: none;
+    border-color: var(--color-forest-green);
+    box-shadow: 0 0 0 2px rgba(31, 125, 83, 0.25);
+}
+
+/* Make the subjects list more readable */
+#teachers-table td:nth-child(4) {
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+/* Manage Grades and Streams specific styling */
+
+/* Form divider for separating the two forms */
+.form-divider {
+    height: 1px;
+    background-color: var(--color-medium-gray);
+    margin: 2rem 0;
+    width: 100%;
+}
+
+/* Streams cell styling */
+.streams-cell {
+    padding: 0.75rem 1rem !important;
+}
+
+.streams-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.stream-item {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem;
+    background-color: rgba(31, 125, 83, 0.05);
+    border-radius: var(--radius-sm);
+}
+
+.stream-name {
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+.stream-id {
+    color: var(--color-dark-gray);
+    font-size: 0.85rem;
+    margin-right: 1rem;
+}
+
+.no-streams {
+    font-style: italic;
+    color: var(--color-dark-gray);
+}
+
+/* Inline form for delete buttons */
+.inline-form {
+    display: inline-flex;
+    margin-left: auto;
+}
+
+/* Small delete button for streams */
+.delete-btn.sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+}
+
+/* Table column widths specific to grades table */
+#grades-table th:nth-child(1),
+#grades-table td:nth-child(1) {
+    width: 10%;
+}
+
+#grades-table th:nth-child(2),
+#grades-table td:nth-child(2) {
+    width: 15%;
+}
+
+#grades-table th:nth-child(3),
+#grades-table td:nth-child(3) {
+    width: 60%;
+}
+
+#grades-table th:nth-child(4),
+#grades-table td:nth-child(4) {
+    width: 15%;
+    text-align: center;
+}
+
+/* Responsive adjustments for the forms-grid */
+@media (min-width: 1200px) {
+    /* Make the form slightly wider than the tips on this page */
+    .forms-grid {
+        grid-template-columns: 55% 45%;
+    }
+}
+
+/* Improved styles for the form layout in this specific page */
+.form-card h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-light-gray);
+    color: var(--color-forest-green);
+}
+
+.form-card h2:not(:first-child) {
+    margin-top: 1rem;
+}
+
+/* Specific spacing for these forms */
+.form-card form {
+    margin-bottom: 1.5rem;
+}
+
+/* Make the streams table more readable */
+#grades-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+#grades-table td {
+    vertical-align: middle;
+}
+
+/* Animation for deletion confirmation */
+.delete-btn:focus {
+    animation: pulse 0.5s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* manage_terms.css - Specific styling for the Manage Terms and Assessment Types page */
+
+:root {
+    --color-forest-green: #1f7d53;
+    --color-light-green: #e7f4ef;
+    --color-medium-gray: #d1d5db;
+    --color-light-gray: #f1f5f9;
+    --color-dark-gray: #64748b;
+    --color-danger: #dc2626;
+    --color-success: #16a34a;
+    --radius-sm: 4px;
+    --radius-md: 6px;
+}
+
+/* Layout container */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Page header */
+h1 {
+    font-size: 2rem;
+    color: var(--color-forest-green);
+    margin-bottom: 1rem;
+}
+
+/* Navigation links */
+.nav-links {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.nav-links a {
+    color: var(--color-forest-green);
+    text-decoration: none;
+}
+
+.nav-links a:hover {
+    text-decoration: underline;
+}
+
+/* Alert messages */
+.error {
+    background-color: rgba(220, 38, 38, 0.1);
+    color: var(--color-danger);
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
+}
+
+.success {
+    background-color: rgba(22, 163, 74, 0.1);
+    color: var(--color-success);
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
+}
+
+/* Grid layout for forms */
+.forms-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.form-card {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.form-card h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-light-gray);
+    color: var(--color-forest-green);
+}
+
+/* Form elements */
+form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+form input[type="text"] {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--color-medium-gray);
+    border-radius: var(--radius-sm);
+}
+
+button {
+    background-color: var(--color-forest-green);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 500;
+    transition: opacity 0.2s ease;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+/* Tables grid layout */
+.tables-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.table-card {
+    background-color: white;
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow-x: auto;
+}
+
+.table-card h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-light-gray);
+    color: var(--color-forest-green);
+}
+
+/* Table styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--color-light-gray);
+}
+
+th {
+    background-color: var(--color-light-green);
+    font-weight: 600;
+}
+
+tr:hover {
+    background-color: rgba(31, 125, 83, 0.05);
+}
+
+/* Inline form for delete buttons */
+.inline-form {
+    display: inline-block;
+}
+
+.delete-btn {
+    background-color: var(--color-danger);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+/* Animation for deletion confirmation */
+.delete-btn:focus {
+    animation: pulse 0.5s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .forms-grid, .tables-grid {
+        gap: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .forms-grid, .tables-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .container {
+        padding: 1rem;
+    }
+    
+    .table-card {
+        overflow-x: auto;
+    }
+}

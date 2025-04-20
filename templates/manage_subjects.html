@@ -8,58 +8,155 @@
 </head>
 <body>
     <div class="container">
-        <h1>Manage Subjects</h1>
-        <a href="{{ url_for('classteacher') }}">Back to Dashboard</a> | <a href="{{ url_for('logout') }}">Logout</a>
+        <div class="manage-container">
+            <header class="page-header">
+                <h1>Manage Subjects</h1>
+                <div class="nav-links">
+                    <a href="{{ url_for('classteacher') }}">Back to Dashboard</a> | 
+                    <a href="{{ url_for('logout') }}">Logout</a>
+                </div>
+            </header>
+            
+            <!-- Message container for notifications -->
+            <div id="message-container">
+                {% if error_message %}
+                    <div class="message message-error">{{ error_message }}</div>
+                {% endif %}
+                {% if success_message %}
+                    <div class="message message-success">{{ success_message }}</div>
+                {% endif %}
+            </div>
 
-        {% if error_message %}
-            <p class="error">{{ error_message }}</p>
-        {% endif %}
-        {% if success_message %}
-            <p class="success">{{ success_message }}</p>
-        {% endif %}
+            <!-- Educational level selector - improved layout -->
+            <div class="level-selector">
+                <label for="filter_education_level">Filter by Education Level:</label>
+                <select id="filter_education_level" onchange="filterSubjects()">
+                    <option value="all">All Levels</option>
+                    <option value="lower_primary">Lower Primary</option>
+                    <option value="upper_primary">Upper Primary</option>
+                    <option value="junior_secondary">Junior Secondary</option>
+                </select>
+            </div>
 
-        <h2>Add New Subject</h2>
-        <form method="POST" action="{{ url_for('manage_subjects') }}">
-            <label for="name">Subject Name:</label>
-            <input type="text" name="name" id="name" required><br>
-
-            <label for="education_level">Education Level:</label>
-            <select name="education_level" id="education_level" required>
-                <option value="">Select Education Level</option>
-                <option value="lower_primary">Lower Primary</option>
-                <option value="upper_primary">Upper Primary</option>
-                <option value="junior_secondary">Junior Secondary</option>
-            </select><br>
-
-            <button type="submit" name="add_subject">Add Subject</button>
-        </form>
-
-        <h2>Existing Subjects</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Education Level</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for subject in subjects %}
-                    <tr>
-                        <td>{{ subject.id }}</td>
-                        <td>{{ subject.name }}</td>
-                        <td>{{ subject.education_level }}</td>
-                        <td>
-                            <form method="POST" action="{{ url_for('manage_subjects') }}" style="display:inline;">
-                                <input type="hidden" name="subject_id" value="{{ subject.id }}">
-                                <button type="submit" name="delete_subject">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+            <div class="forms-grid">
+                <!-- Add Subject Form -->
+                <div class="form-card">
+                    <h2>Add New Subject</h2>
+                    <form method="POST" action="{{ url_for('manage_subjects') }}">
+                        <div class="form-group">
+                            <label for="name">Subject Name:</label>
+                            <input type="text" name="name" id="name" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="education_level">Education Level:</label>
+                            <select name="education_level" id="education_level" class="form-control" required>
+                                <option value="">Select Education Level</option>
+                                <option value="lower_primary">Lower Primary</option>
+                                <option value="upper_primary">Upper Primary</option>
+                                <option value="junior_secondary">Junior Secondary</option>
+                            </select>
+                        </div>
+                        
+                        <button type="submit" name="add_subject" class="manage-btn">Add Subject</button>
+                    </form>
+                </div>
+                
+                <!-- This is the second column for tips -->
+                <div class="form-card">
+                    <h2>Subject Management Tips</h2>
+                    <div class="tips-content">
+                        <p>Here are some tips for managing subjects effectively:</p>
+                        <ul>
+                            <li>Ensure each subject has a unique name within its education level</li>
+                            <li>Before deleting a subject, make sure it's not assigned to any classes</li>
+                            <li>Use the filter option above to view subjects by education level</li>
+                            <li>You can search for specific subjects using the search box below</li>
+                            <li>Changes to subjects will affect all associated classes</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Subjects Table - improved structure -->
+            <div class="students-section">
+                <h2>Existing Subjects</h2>
+                <div id="student-filter">
+                    <label for="subject-search">Search subjects:</label>
+                    <input type="text" id="subject-search" onkeyup="searchSubjects()" placeholder="Type to search...">
+                </div>
+                
+                <div class="table-responsive">
+                    <table id="subjects-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Education Level</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subject in subjects %}
+                            <tr data-level="{{ subject.education_level }}">
+                                <td>{{ subject.id }}</td>
+                                <td>{{ subject.name }}</td>
+                                <td>{{ subject.education_level }}</td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('manage_subjects') }}" style="display:inline;">
+                                        <input type="hidden" name="subject_id" value="{{ subject.id }}">
+                                        <button type="submit" name="delete_subject" class="delete-btn">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <script>
+        // Function to filter subjects by education level
+        function filterSubjects() {
+            const filterValue = document.getElementById('filter_education_level').value.toLowerCase();
+            const rows = document.querySelectorAll('#subjects-table tbody tr');
+            
+            rows.forEach(row => {
+                const level = row.getAttribute('data-level');
+                if (filterValue === 'all' || level === filterValue) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        // Function to search subjects by name
+        function searchSubjects() {
+            const searchValue = document.getElementById('subject-search').value.toLowerCase();
+            const rows = document.querySelectorAll('#subjects-table tbody tr');
+            
+            rows.forEach(row => {
+                const subjectName = row.cells[1].textContent.toLowerCase();
+                if (subjectName.includes(searchValue)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+        
+        // Function to auto-hide messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                const messages = document.querySelectorAll('.message');
+                messages.forEach(message => {
+                    message.style.display = 'none';
+                });
+            }, 5000);
+        });
+    </script>
 </body>
 </html>
