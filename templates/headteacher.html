@@ -1,89 +1,205 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Headteacher Dashboard - Hill View School</title>
-
-  <!-- Stylesheets -->
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Headteacher Dashboard - Hill View School</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/headteacher.css') }}">
+    <style>
+        /* Added CSS for the nested table structure */
+        .grade-row {
+            background-color: #f8f9fa; /* Light background for grade rows */
+            font-weight: bold;
+        }
+        .stream-row {
+            background-color: #ffffff; /* White background for stream rows */
+        }
+        .grade-row td, .stream-row td {
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .gender-male {
+            color: #007bff; /* Blue for boys */
+        }
+        .gender-female {
+            color: #ff69b4; /* Pink for girls */
+        }
+    </style>
 </head>
 <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="#" class="navbar-brand">Hill View School</a>
+        <ul class="navbar-nav">
+            <li class="nav-item"><a href="{{ url_for('headteacher') }}" class="nav-link">Dashboard</a></li>
+            <li class="nav-item"><a href="#" class="nav-link">Reports</a></li>
+            <li class="nav-item"><a href="#" class="nav-link">Staff</a></li>
+            <li class="nav-item"><a href="{{ url_for('logout') }}" class="logout-btn">Logout</a></li>
+        </ul>
+    </nav>
 
-  <!-- Navbar -->
-  <nav class="navbar">
-    <a href="#" class="navbar-brand">Hill View School</a>
-    <ul class="navbar-nav">
-      <li><a href="#" class="nav-link">Dashboard</a></li>
-      <li><a href="#" class="nav-link">Reports</a></li>
-      <li><a href="#" class="nav-link">Staff</a></li>
-      <li><a href="#" class="nav-link">Settings</a></li>
-      <li><a href="{{ url_for('index') }}" class="logout-btn">Logout</a></li>
-    </ul>
-  </nav>
-
-  <!-- Page Content -->
-  <main class="container mt-5 no-print" style="padding-top: 5rem; max-width: var(--container-lg); margin: 0 auto;">
-
-    <!-- Heading -->
-    <h1 class="mb-4 text-left">School Performance Dashboard</h1>
-
-    <!-- Performance Overview -->
-    <div class="dashboard-card">
-      <div class="card-header">Performance Overview</div>
-      {% if data %}
-      <table>
-        <thead>
-          <tr>
-            <th>Grade/Stream</th>
-            <th>Mean Score (%)</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in data %}
-          <tr>
-            <td>{{ row.grade }}</td>
-            <td>{{ row.mean }}</td>
-            <td>
-              <a href="#" class="btn btn-sm">View Details</a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p>No class reports have been submitted yet.</p>
-      {% endif %}
-    </div>
-
-    <!-- Stats and Quick Actions -->
-    <div class="mt-5" style="display: flex; flex-wrap: wrap; gap: 1.5rem;">
-
-      <!-- Statistics -->
-      <div class="dashboard-card" style="flex: 1 1 300px;">
-        <div class="card-header">School Statistics</div>
-        <div>
-          <p><strong>Total Students:</strong> 520</p>
-          <p><strong>Total Teachers:</strong> 35</p>
-          <p><strong>Average Performance:</strong> 67.5%</p>
-          <p><strong>Top Performing Class:</strong> 4G</p>
+    <div class="dashboard-container">
+        <!-- Dashboard Actions -->
+        <div class="dashboard-actions">
+            <button class="action-btn action-btn-outline">
+                <span>Filter Data</span>
+            </button>
+            <button class="action-btn">
+                <span>Generate Report</span>
+            </button>
         </div>
-      </div>
 
-      <!-- Quick Actions -->
-      <div class="dashboard-card" style="flex: 1 1 300px;">
-        <div class="card-header">Quick Actions</div>
-        <div style="display: flex; flex-direction: column; gap: var(--space-sm);">
-          <a href="#" class="btn">Generate School Report</a>
-          <a href="#" class="btn btn-secondary">View Teacher Performance</a>
-          <a href="#" class="btn btn-secondary">Manage Classes</a>
+        <!-- School Statistics -->
+        <div class="section-header">
+            <h2>School Statistics</h2>
         </div>
-      </div>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Students</div>
+                <div class="stat-value">{{ total_students }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Teachers</div>
+                <div class="stat-value">{{ total_teachers }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Average Performance</div>
+                <div class="stat-value">{{ avg_performance }}%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Classes</div>
+                <div class="stat-value">{{ total_classes }}</div>
+            </div>
+        </div>
 
+        <!-- Performance Highlights -->
+        <div class="section-header">
+            <h2>Performance Highlights</h2>
+        </div>
+        <div class="highlights-grid">
+            <div class="highlight-card">
+                <div class="highlight-label">Top Performing Class</div>
+                <div class="highlight-value">{{ top_class }}</div>
+                <p>Average score: {{ top_class_score }}%</p>
+            </div>
+            <div class="highlight-card">
+                <div class="highlight-label">Least Performing Grade</div>
+                <div class="highlight-value">{{ least_performing_grade }}</div>
+                <p>Average score: {{ least_grade_score }}%</p>
+            </div>
+        </div>
+
+        <!-- Charts for Data Visualization -->
+        <div class="section-header">
+            <h2>Performance Overview</h2>
+        </div>
+        <div class="chart-container">
+            <div class="chart-placeholder">Performance data visualization will appear here</div>
+        </div>
+
+        <!-- Learners per Grade -->
+        <div class="section-header">
+            <h2>Learners per Grade</h2>
+        </div>
+        <div class="data-card">
+            <div class="card-header">
+                <h3 class="card-title">Grade Distribution</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Grade/Stream</th>
+                            <th>Total Learners</th>
+                            <th>Boys</th>
+                            <th>Girls</th>
+                            <th>Gender Ratio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for grade, count in learners_per_grade.items() %}
+                        <!-- Main row for the grade -->
+                        <tr class="grade-row">
+                            <td><strong>{{ grade }}</strong></td>
+                            <td>{{ count }}</td>
+                            <td class="gender-male">{{ gender_per_grade[grade]['Male'] }}</td>
+                            <td class="gender-female">{{ gender_per_grade[grade]['Female'] }}</td>
+                            <td>{{ ((gender_per_grade[grade]['Male'] / count) * 100) | round }}% : {{ ((gender_per_grade[grade]['Female'] / count) * 100) | round }}%</td>
+                        </tr>
+                        <!-- Sub-rows for each stream in this grade -->
+                        {% for stream_name, stream_data in streams_per_grade[grade].items() %}
+                        <tr class="stream-row">
+                            <td style="padding-left: 30px;">{{ stream_name }}</td>
+                            <td>{{ stream_data['total'] }}</td>
+                            <td class="gender-male">{{ stream_data['Male'] }}</td>
+                            <td class="gender-female">{{ stream_data['Female'] }}</td>
+                            <td>
+                                {% if stream_data['total'] > 0 %}
+                                    {{ ((stream_data['Male'] / stream_data['total']) * 100) | round }}% : {{ ((stream_data['Female'] / stream_data['total']) * 100) | round }}%
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Performance Overview -->
+        <div class="section-header">
+            <h2>Detailed Performance</h2>
+        </div>
+        <div class="data-card">
+            <div class="card-header">
+                <h3 class="card-title">Assessment Results by Grade and Stream</h3>
+            </div>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Grade</th>
+                            <th>Stream</th>
+                            <th>Term</th>
+                            <th>Assessment Type</th>
+                            <th>Mean Score</th>
+                            <th>Performance</th>
+                            <th>E.E Count</th>
+                            <th>M.E Count</th>
+                            <th>A.E Count</th>
+                            <th>B.E Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for data in performance_data %}
+                        <tr>
+                            <td><strong>{{ data.grade }}</strong></td>
+                            <td>{{ data.stream }}</td>
+                            <td>{{ data.term }}</td>
+                            <td>{{ data.assessment_type }}</td>
+                            <td><strong>{{ data.mean_percentage }}%</strong></td>
+                            <td class="{% if data.performance_category == 'Excellent' %}category-excellent{% elif data.performance_category == 'Good' %}category-good{% elif data.performance_category == 'Average' %}category-average{% else %}category-below{% endif %}">
+                                {{ data.performance_category }}
+                            </td>
+                            <td>{{ data.performance_counts['E.E'] }}</td>
+                            <td>{{ data.performance_counts['M.E'] }}</td>
+                            <td>{{ data.performance_counts['A.E'] }}</td>
+                            <td>{{ data.performance_counts['B.E'] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>Hillview School powered by CbcTeachkit</p>
+        </footer>
     </div>
-  </main>
-
 </body>
 </html>

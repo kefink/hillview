@@ -6,6 +6,51 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+    <style>
+        .stream-status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .status-ready {
+            background-color: #28a745;
+        }
+        .status-pending {
+            background-color: #dc3545;
+        }
+        .stream-status-list {
+            margin-top: 10px;
+            max-height: 150px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 8px;
+            border-radius: 4px;
+        }
+        .stream-status-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .refresh-status {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .marksheet-info {
+            background-color: #f8f9fa;
+            border-left: 4px solid #17a2b8;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
     <!-- Error Message Section -->
@@ -141,13 +186,13 @@
                             <tbody>
                                 {% for student in students %}
                                 <tr>
-                                    <td>{{ student }}</td>
+                                    <td>{{ student.name }}</td>
                                     {% for subject in subjects %}
                                     <td>
-                                        <input type="number" name="mark_{{ student.replace(' ', '_') }}_{{ subject.replace(' ', '_') }}" 
+                                        <input type="number" name="mark_{{ student.name.replace(' ', '_') }}_{{ subject.replace(' ', '_') }}" 
                                                min="0" max="{{ total_marks }}" required 
-                                               oninput="updatePercentage(this, '{{ student.replace(' ', '_') }}_{{ subject.replace(' ', '_') }}')">
-                                        <div id="percentage_{{ student.replace(' ', '_') }}_{{ subject.replace(' ', '_') }}" class="percentage-cell">0%</div>
+                                               oninput="updatePercentage(this, '{{ student.name.replace(' ', '_') }}_{{ subject.replace(' ', '_') }}')">
+                                        <div id="percentage_{{ student.name.replace(' ', '_') }}_{{ subject.replace(' ', '_') }}" class="percentage-cell">0%</div>
                                     </td>
                                     {% endfor %}
                                 </tr>
@@ -163,6 +208,68 @@
                 </form>
             </div>
             {% endif %}
+        </div>
+
+        <!-- Updated Section: Generate Grade Marksheet (All Streams) -->
+        <div class="dashboard-card mt-4">
+            <div class="card-header">
+                <span>Generate Grade Marksheet (All Streams)</span>
+                <small>Select grade, term, and assessment type to generate a marksheet for all streams in the grade</small>
+            </div>
+            <form id="stream-marksheet-form" method="POST" action="{{ url_for('classteacher') }}" class="login-form">
+                <div class="form-group">
+                    <label for="stream_grade">Grade</label>
+                    <select id="stream_grade" name="stream_grade" required onchange="checkStreamStatus()">
+                        <option value="">Select Grade</option>
+                        {% for grade_option in grades %}
+                        <option value="{{ grade_option }}">{{ grade_option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="stream_term">Term</label>
+                    <select id="stream_term" name="stream_term" required onchange="checkStreamStatus()">
+                        <option value="">Select Term</option>
+                        {% for term_option in terms %}
+                        <option value="{{ term_option }}">{{ term_option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="stream_assessment_type">Assessment Type</label>
+                    <select id="stream_assessment_type" name="stream_assessment_type" required onchange="checkStreamStatus()">
+                        <option value="">Select Assessment Type</option>
+                        {% for assessment_option in assessment_types %}
+                        <option value="{{ assessment_option }}">{{ assessment_option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group" style="grid-column: span 2;">
+                    <div class="marksheet-info">
+                        <strong>Grade Marksheet Status:</strong>
+                        <p>A grade marksheet combines results from all streams in the selected grade. All streams must have their marks entered before generating.</p>
+                        <button type="button" class="refresh-status" onclick="checkStreamStatus()">Refresh Status</button>
+                    </div>
+                    
+                    <div id="stream-status-container" class="stream-status-list" style="display: none;">
+                        <div id="stream-status-list">
+                            <!-- Stream status items will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="grid-column: span 2; text-align: center;">
+                    <button type="submit" id="preview-marksheet-btn" name="generate_stream_marksheet" value="1" class="btn" style="background-color: #007BFF; margin-right: 10px;" disabled>
+                        Preview Grade Marksheet
+                    </button>
+                    <button type="submit" id="download-marksheet-btn" name="download_stream_marksheet" value="1" class="btn" style="background-color: #28A745;" disabled>
+                        Download Grade Marksheet
+                    </button>
+                </div>
+            </form>
         </div>
 
         <div class="dashboard-card mt-4">
@@ -239,11 +346,9 @@
                     <tbody>
                         {% for student in students %}
                         <tr>
-                            <td>{{ student }}</td>
+                            <td>{{ student.name }}</td>
                             <td>
-                                <a href="{{ url_for('preview_individual_report', grade=grade, stream=stream, term=term, assessment_type=assessment_type, student_name=student) }}" class="btn" style="background-color: #007BFF;">
-                                    Preview Report
-                                </a>
+                                <a href="{{ url_for('preview_individual_report', grade=grade, stream=stream, term=term, assessment_type=assessment_type, student_name=student.name) }}" class="btn" style="background-color: #007BFF;">Preview Report</a>
                             </td>
                         </tr>
                         {% endfor %}
@@ -276,7 +381,7 @@
             }
         }
 
-        // Function to fetch streams dynamically based on selected grade
+        // Function to fetch streams dynamically based on selected grade (for uploading marks)
         function fetchStreams() {
             const grade = document.getElementById('grade').value;
             const streamSelect = document.getElementById('stream');
@@ -286,15 +391,6 @@
             streamSelect.innerHTML = '<option value="">Select Stream</option>';
             
             if (grade) {
-                // Fetch the grade ID by matching the grade level
-                const gradeOptions = {{ grades | tojson }};
-                const selectedGrade = gradeOptions.find(g => g === grade);
-                if (!selectedGrade) {
-                    console.error('Grade not found:', grade);
-                    return;
-                }
-
-                // Fetch streams from the server
                 fetch(`/get_streams/${grade}`)
                     .then(response => response.json())
                     .then(data => {
@@ -330,10 +426,97 @@
             }
         }
 
+        // Function to check stream status for grade marksheet
+        function checkStreamStatus() {
+            const grade = document.getElementById('stream_grade').value;
+            const term = document.getElementById('stream_term').value;
+            const assessmentType = document.getElementById('stream_assessment_type').value;
+            const statusContainer = document.getElementById('stream-status-container');
+            const statusList = document.getElementById('stream-status-list');
+            const previewBtn = document.getElementById('preview-marksheet-btn');
+            const downloadBtn = document.getElementById('download-marksheet-btn');
+            
+            // Clear the status list
+            statusList.innerHTML = '';
+            
+            if (grade && term && assessmentType) {
+                statusContainer.style.display = 'block';
+                
+                // Add loading indicator
+                statusList.innerHTML = '<p>Checking stream status...</p>';
+                
+                // Fetch stream status from the server
+                fetch(`/api/check_stream_status/${grade}/${term}/${assessmentType}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        statusList.innerHTML = '';
+                        let allStreamsReady = true;
+                        
+                        if (data.streams && data.streams.length > 0) {
+                            data.streams.forEach(stream => {
+                                const statusItem = document.createElement('div');
+                                statusItem.className = 'stream-status-item';
+                                
+                                const indicator = document.createElement('span');
+                                indicator.className = `stream-status-indicator ${stream.has_report ? 'status-ready' : 'status-pending'}`;
+                                
+                                const text = document.createElement('span');
+                                text.textContent = `${stream.name}: ${stream.has_report ? 'Report Ready' : 'Report Missing'}`;
+                                
+                                statusItem.appendChild(indicator);
+                                statusItem.appendChild(text);
+                                statusList.appendChild(statusItem);
+                                
+                                if (!stream.has_report) {
+                                    allStreamsReady = false;
+                                }
+                            });
+                            
+                            // Enable or disable buttons based on status
+                            previewBtn.disabled = !allStreamsReady;
+                            downloadBtn.disabled = !allStreamsReady;
+                            
+                            if (!allStreamsReady) {
+                                const warningText = document.createElement('p');
+                                warningText.style.color = '#dc3545';
+                                warningText.style.marginTop = '10px';
+                                warningText.innerHTML = '<strong>Note:</strong> All streams must have reports generated before creating a grade marksheet.';
+                                statusList.appendChild(warningText);
+                            } else {
+                                const successText = document.createElement('p');
+                                successText.style.color = '#28a745';
+                                successText.style.marginTop = '10px';
+                                successText.innerHTML = '<strong>Ready!</strong> All stream reports are available. You can now generate the grade marksheet.';
+                                statusList.appendChild(successText);
+                            }
+                        } else {
+                            statusList.innerHTML = '<p>No streams found for this grade.</p>';
+                            previewBtn.disabled = true;
+                            downloadBtn.disabled = true;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking stream status:', error);
+                        statusList.innerHTML = '<p style="color: #dc3545;">Error checking stream status. Please try again.</p>';
+                        previewBtn.disabled = true;
+                        downloadBtn.disabled = true;
+                    });
+            } else {
+                statusContainer.style.display = 'none';
+                previewBtn.disabled = true;
+                downloadBtn.disabled = true;
+            }
+        }
+
         // Initialize form validations on page load
         document.addEventListener('DOMContentLoaded', () => {
             updateSubjects();
             fetchStreams();
+            
+            // Add event listeners for grade marksheet form fields
+            document.getElementById('stream_grade').addEventListener('change', checkStreamStatus);
+            document.getElementById('stream_term').addEventListener('change', checkStreamStatus); 
+            document.getElementById('stream_assessment_type').addEventListener('change', checkStreamStatus);
         });
     </script>
 </body>

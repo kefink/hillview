@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirm Grade Marksheet - Hill View School</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="#" class="navbar-brand">Hill View School</a>
+        <ul class="navbar-nav">
+            <li class="nav-item"><a href="{{ url_for('classteacher') }}" class="nav-link">Back to Dashboard</a></li>
+            <li class="nav-item"><a href="{{ url_for('logout') }}" class="logout-btn">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="container" style="max-width: 90%; margin-top: 80px;">
+        <h1 class="text-center mb-4">Confirm Grade {{ grade }} Marksheet</h1>
+        <h3 class="text-center mb-4">Term: {{ term }} | Assessment: {{ assessment_type }}</h3>
+
+        <div class="dashboard-card">
+            <div class="card-header">
+                <span>Performance Summary</span>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Exceeding Expectations (≥75%)</th>
+                            <th>Meeting Expectations (50–74%)</th>
+                            <th>Approaching Expectations (30–49%)</th>
+                            <th>Below Expectations (<30%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>{{ stats.exceeding }}</td>
+                            <td>{{ stats.meeting }}</td>
+                            <td>{{ stats.approaching }}</td>
+                            <td>{{ stats.below }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="dashboard-card mt-4">
+            <div class="card-header">
+                <span>Marksheet Summary</span>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Stream</th>
+                            <th>Student</th>
+                            {% for subject in subjects %}
+                            <th>{{ subject }} ({{ total_marks }})</th>
+                            {% endfor %}
+                            <th>Total Marks</th>
+                            <th>Average %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student_data in students_data %}
+                        <tr>
+                            <td>{{ student_data.rank }}</td>
+                            <td>{{ student_data.stream }}</td>
+                            <td>{{ student_data.student }}</td>
+                            {% for subject in subjects %}
+                            <td>{{ student_data.marks[subject] }}</td>
+                            {% endfor %}
+                            <td>{{ student_data.total_marks }}</td>
+                            <td>{{ student_data.average_percentage | round(1) }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <form method="POST" action="{{ url_for('confirm_grade_marksheet', grade=grade, term=term, assessment_type=assessment_type, action=action) }}">
+                <button type="submit" name="confirm" value="1" class="btn" style="background-color: #28A745; margin-right: 10px;">
+                    Confirm and {{ 'Preview' if action == 'preview' else 'Download' }}
+                </button>
+                <button type="submit" name="cancel" value="1" class="btn" style="background-color: #DC3545;">
+                    Cancel
+                </button>
+            </form>
+            <p>Please review the marksheet summary above. Click "Confirm" to proceed or "Cancel" to return to the dashboard.</p>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2025 Hill View School - All Rights Reserved</p>
+    </footer>
+</body>
+</html>
