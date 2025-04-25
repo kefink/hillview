@@ -18,8 +18,9 @@ from models import db, Subject, Teacher, Grade, Stream, Term, AssessmentType, St
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 
-# Configure SQLite database for development
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///E:/DKANTE/hillview_mvp/hillview.db'
+# Configure SQLite database dynamically
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'hillview.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize the database with the Flask app

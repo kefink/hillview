@@ -1,0 +1,325 @@
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from models import db, Subject, Teacher, Grade, Stream, Term, AssessmentType, Student, Mark
+import os
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///hillview.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'your_secret_key_here'  # Replace with a secure key
+db.init_app(app)
+
+# Create the database and tables if they don't exist
+with app.app_context():
+    db.create_all()
+    # Add some sample data if the database is empty
+    if not Grade.query.first():
+        # Sample Grades
+        grade1 = Grade(level="Grade 1")
+        grade2 = Grade(level="Grade 2")
+        db.session.add_all([grade1, grade2])
+
+        # Sample Streams
+        stream1 = Stream(name="Stream A", grade=grade1)
+        stream2 = Stream(name="Stream B", grade=grade1)
+        stream3 = Stream(name="Stream A", grade=grade2)
+        db.session.add_all([stream1, stream2, stream3])
+
+        # Sample Subjects
+        subject1 = Subject(name="Mathematics", education_level="Primary")
+        subject2 = Subject(name="Science", education_level="Primary")
+        subject3 = Subject(name="English", education_level="Primary")
+        db.session.add_all([subject1, subject2, subject3])
+
+        # Sample Terms
+        term1 = Term(name="Term 1")
+        term2 = Term(name="Term 2")
+        db.session.add_all([term1, term2])
+
+        # Sample Assessment Types
+        assessment1 = AssessmentType(name="Exam")
+        assessment2 = AssessmentType(name="Quiz")
+        db.session.add_all([assessment1, assessment2])
+
+        db.session.commit()
+
+@app.route("/")
+def index():
+    return redirect(url_for('classteacher_login'))
+
+@app.route("/classteacher_login", methods=["GET", "POST"])
+def classteacher_login():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+        teacher = Teacher.query.filter_by(username=username, password=password, role="classteacher").first()
+        if teacher:
+            session['username'] = teacher.username
+            session['role'] = teacher.role
+            return redirect(url_for('classteacher'))
+        return render_template("classteacher_login.html", error="Invalid credentials")
+    return render_template("classteacher_login.html")
+
+@app.route("/classteacher")
+def classteacher():
+    if 'username' not in session or session['role'] != 'classteacher':
+        return redirect(url_for('classteacher_login'))
+    return render_template("classteacher.html")
+
+@app.route("/manage_students", methods=["GET", "POST"])
+def manage_students():
+    if 'username' not in session or session['role'] != 'classteacher':
+        return redirect(url_for('classteacher_login'))
+
+    error_message = None
+    success_message = None
+    grades = Grade.query.all()
+
+    if request.method == "POST":
+        if "add_student" in request.form:
+            name = request.form.get("name")
+            stream_id = request.form.get("stream")
+            if name and stream_id:
+                existing_student = Student.query.filter_by(name=name, stream_id=stream_id).first()
+                if existing_student:
+                    error_message = f"Student '{name}' already exists in this stream."
+                else:
+                    new_student = Student(name=name, stream_id=stream_id)
+                    db.session.add(new_student)
+                    db.session.commit()
+                    success_message = f"Student '{name}' added successfully!"
+            else:
+                error_message = "Please fill in all fields."
+
+        elif "delete_student" in request.form:
+            student_id = request.form.get("student_id")
+            student = Student.query.get(student_id)
+            if student:
+                db.session.delete(student)
+                db.session.commit()
+                success_message = f"Student '{student.name}' deleted successfully!"
+            else:
+                error_message = "Student not found."
+
+    students = Student.query.all()
+    return render_template("manage_students.html", students=students, grades=grades, error_message=error_message, success_message=success_message)
+
+@app.route("/manage_subjects", methods=["GET", "POST"])
+def manage_subjects():
+    if 'username' not in session or session['role'] != 'classteacher':
+        return redirect(url_for('classteacher_login'))
+
+    error_message = None
+    success_message = None
+
+    if request.method == "POST":
+        if "add_subject" in request.form:
+            name = request.form.get("name")
+            education_level = request.form.get("education_level")
+            if name and education_level:
+                existing_subject = Subject.query.filter_by(name=name, education_level=education_level).first()
+                if existing_subject:
+                    error_message = f"Subject '{name}' already exists for this education level."
+                else:
+                    new_subject = Subject(name=name, education_level=education_level)
+                    db.session.add(new_subject)
+                    db.session.commit()
+                    success_message = f"Subject '{name}' added successfully!"
+            else:
+                error_message = "Please fill in all fields."
+
+        elif "delete_subject" in request.form:
+            subject_id = request.form.get("subject_id")
+            subject = Subject.query.get(subject_id)
+            if subject:
+                db.session.delete(subject)
+                db.session.commit()
+                success_message = f"Subject '{subject.name}' deleted successfully!"
+            else:
+                error_message = "Subject not found."
+
+    subjects = Subject.query.all()
+    return render_template("manage_subjects.html", subjects=subjects, error_message=error_message, success_message=success_message)
+
+@app.route("/manage_teachers", methods=["GET", "POST"])
+def manage_teachers():
+    if 'username' not in session or session['role'] != 'classteacher':
+        return redirect(url_for('classteacher_login'))
+
+    error_message = None
+    success_message = None
+    subjects = Subject.query.all()  # Fetch all subjects for the dropdown
+    grades = Grade.query.all()  # Fetch all grades for the dropdown
+
+    if request.method == "POST":
+        if "add_teacher" in request.form:
+            username = request.form.get("username")
+            password = request.form.get("password")
+            role = request.form.get("role")
+            subject_ids = request.form.getlist("subjects")  # Get list of selected subject IDs
+            stream_id = request.form.get("stream")
+
+            if username and password and role and subject_ids and stream_id:
+                # Check if teacher already exists
+                existing_teacher = Teacher.query.filter_by(username=username).first()
+                if existing_teacher:
+                    error_message = f"Teacher with username '{username}' already exists."
+                else:
+                    # Create new teacher
+                    new_teacher = Teacher(username=username, password=password, role=role, stream_id=stream_id)
+                    # Assign subjects
+                    selected_subjects = Subject.query.filter(Subject.id.in_(subject_ids)).all()
+                    new_teacher.subjects = selected_subjects
+                    db.session.add(new_teacher)
+                    db.session.commit()
+                    success_message = f"Teacher '{username}' added successfully!"
+            else:
+                error_message = "Please fill in all fields."
+
+        elif "delete_teacher" in request.form:
+            teacher_id = request.form.get("teacher_id")
+            teacher = Teacher.query.get(teacher_id)
+            if teacher:
+                db.session.delete(teacher)
+                db.session.commit()
+                success_message = f"Teacher '{teacher.username}' deleted successfully!"
+            else:
+                error_message = "Teacher not found."
+
+    teachers = Teacher.query.all()
+    return render_template("manage_teachers.html", teachers=teachers, subjects=subjects, grades=grades, error_message=error_message, success_message=success_message)
+
+@app.route("/manage_grades_streams", methods=["GET", "POST"])
+def manage_grades_streams():
+    if 'username' not in session or session['role'] != 'classteacher':
+        return redirect(url_for('classteacher_login'))
+
+    error_message = None
+    success_message = None
+
+    if request.method == "POST":
+        if "add_grade" in request.form:
+            level = request.form.get("level")
+            if level:
+                existing_grade = Grade.query.filter_by(level=level).first()
+                if existing_grade:
+                    error_message = f"Grade '{level}' already exists."
+                else:
+                    new_grade = Grade(level=level)
+                    db.session.add(new_grade)
+                    db.session.commit()
+                    success_message = f"Grade '{level}' added successfully!"
+            else:
+                error_message = "Please fill in the grade level."
+
+        elif "add_stream" in request.form:
+            name = request.form.get("name")
+            grade_id = request.form.get("grade_id")
+            if name and grade_id:
+                existing_stream = Stream.query.filter_by(name=name, grade_id=grade_id).first()
+                if existing_stream:
+                    error_message = f"Stream '{name}' already exists for this grade."
+                else:
+                    new_stream = Stream(name=name, grade_id=grade_id)
+                    db.session.add(new_stream)
+                    db.session.commit()
+                    success_message = f"Stream '{name}' added successfully!"
+            else:
+                error_message = "Please fill in all fields for the stream."
+
+        elif "delete_grade" in request.form:
+            grade_id = request.form.get("grade_id")
+            grade = Grade.query.get(grade_id)
+            if grade:
+                db.session.delete(grade)
+                db.session.commit()
+                success_message = f"Grade '{grade.level}' deleted successfully!"
+            else:
+                error_message = "Grade not found."
+
+        elif "delete_stream" in request.form:
+            stream_id = request.form.get("stream_id")
+            stream = Stream.query.get(stream_id)
+            if stream:
+                db.session.delete(stream)
+                db.session.commit()
+                success_message = f"Stream '{stream.name}' deleted successfully!"
+            else:
+                error_message = "Stream not found."
+
+    grades = Grade.query.all()
+    return render_template("manage_grades_streams.html", grades=grades, error_message=error_message, success_message=success_message)
+
+@app.route("/manage_terms_assessments", methods=["GET", "POST"])
+def manage_terms_assessments():
+    if 'username' not in session or session['role'] != 'classteacher':
+        return redirect(url_for('classteacher_login'))
+
+    error_message = None
+    success_message = None
+
+    if request.method == "POST":
+        if "add_term" in request.form:
+            name = request.form.get("name")
+            if name:
+                existing_term = Term.query.filter_by(name=name).first()
+                if existing_term:
+                    error_message = f"Term '{name}' already exists."
+                else:
+                    new_term = Term(name=name)
+                    db.session.add(new_term)
+                    db.session.commit()
+                    success_message = f"Term '{name}' added successfully!"
+            else:
+                error_message = "Please fill in the term name."
+
+        elif "add_assessment" in request.form:
+            name = request.form.get("name")
+            if name:
+                existing_assessment = AssessmentType.query.filter_by(name=name).first()
+                if existing_assessment:
+                    error_message = f"Assessment Type '{name}' already exists."
+                else:
+                    new_assessment = AssessmentType(name=name)
+                    db.session.add(new_assessment)
+                    db.session.commit()
+                    success_message = f"Assessment Type '{name}' added successfully!"
+            else:
+                error_message = "Please fill in the assessment type name."
+
+        elif "delete_term" in request.form:
+            term_id = request.form.get("term_id")
+            term = Term.query.get(term_id)
+            if term:
+                db.session.delete(term)
+                db.session.commit()
+                success_message = f"Term '{term.name}' deleted successfully!"
+            else:
+                error_message = "Term not found."
+
+        elif "delete_assessment" in request.form:
+            assessment_id = request.form.get("assessment_id")
+            assessment = AssessmentType.query.get(assessment_id)
+            if assessment:
+                db.session.delete(assessment)
+                db.session.commit()
+                success_message = f"Assessment Type '{assessment.name}' deleted successfully!"
+            else:
+                error_message = "Assessment Type not found."
+
+    terms = Term.query.all()
+    assessments = AssessmentType.query.all()
+    return render_template("manage_terms_assessments.html", terms=terms, assessments=assessments, error_message=error_message, success_message=success_message)
+
+@app.route("/get_streams/<int:grade_id>")
+def get_streams(grade_id):
+    streams = Stream.query.filter_by(grade_id=grade_id).all()
+    return jsonify({"streams": [{"id": stream.id, "name": stream.name} for stream in streams]})
+
+@app.route("/logout")
+def logout():
+    session.pop('username', None)
+    session.pop('role', None)
+    return redirect(url_for('classteacher_login'))
+
+if __name__ == "__main__":
+    app.run(debug=True)
