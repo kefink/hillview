@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Class Report Preview - Hill View School</title>
+    <title>Class Report Preview - Kirima Primary School</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
@@ -88,7 +88,7 @@
     <div class="report-container">
         <a href="{{ url_for('classteacher') }}" class="back-btn">Back to Dashboard</a>
         <div class="header">
-            <h1>HILL VIEW SCHOOL</h1>
+            <h1>KIRIMA PRIMARY SCHOOL</h1>
             <p>GRADE {{ grade }} - {{ education_level.upper() }} MARKSHEET: AVERAGE SCORE</p>
             <p>STREAM: {{ stream }}  TERM: {{ term.replace('_', ' ').upper() }}  ASSESSMENT: {{ assessment_type.upper() }}</p>
         </div>
@@ -134,7 +134,7 @@
 
         <div class="footer">
             <p>Generated on: {{ current_date }}</p>
-            <p>Hillview School powered by CbcTeachkit</p>
+            <p>Kirima Primary School powered by CbcTeachkit</p>
         </div>
     </div>
 </body>

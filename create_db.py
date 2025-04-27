@@ -3,7 +3,7 @@ from models import db, Teacher, Grade, Stream, Subject, Term, AssessmentType, St
 
 # Create a Flask app instance for database initialization
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///E:/DKANTE/hillview_mvp/hillview.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///E:/DKANTE/hillview_mvp/kirima_primary.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 

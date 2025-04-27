@@ -20,7 +20,7 @@ app.secret_key = 'your_secret_key_here'
 
 # Configure SQLite database dynamically
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'hillview.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'kirima_primary.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize the database with the Flask app
@@ -92,7 +92,7 @@ def generate_individual_report_pdf(grade, stream, term, assessment_type, student
     normal_style = styles['Normal']
     heading3_style = styles['Heading3']
 
-    elements.append(Paragraph("HILL VIEW SCHOOL", title_style))
+    elements.append(Paragraph("KIRIMA PRIMARY SCHOOL", title_style))
     elements.append(Paragraph("P.O. Box 12345 - 00100, Nairobi, Kenya", subtitle_style))
     elements.append(Paragraph("Tel: 0712345678", subtitle_style))
     elements.append(Paragraph(f"ACADEMIC REPORT TERM {term.replace('_', ' ').upper()} 2025", subtitle_style))
@@ -170,7 +170,7 @@ def generate_individual_report_pdf(grade, stream, term, assessment_type, student
     footer_style.alignment = 1
     current_date = datetime.now().strftime("%Y-%m-%d")
     elements.append(Paragraph(f"Generated on: {current_date}", footer_style))
-    elements.append(Paragraph("Hillview School powered by CbcTeachkit", footer_style))
+    elements.append(Paragraph("Kirima Primary School powered by CbcTeachkit", footer_style))
 
     doc.build(elements)
     return pdf_file
@@ -781,7 +781,7 @@ def generate_grade_marksheet(grade, term, assessment_type, action):
 
     # Add title
     styles = getSampleStyleSheet()
-    title = Paragraph(f"HILL VIEW SCHOOL<br/>GRADE {grade} - MARKSHEET: AVERAGE SCORE<br/>TERM: {term} ASSESSMENT: {assessment_type}", styles['Title'])
+    title = Paragraph(f"KIRIMA PRIMARY SCHOOL<br/>GRADE {grade} - MARKSHEET: AVERAGE SCORE<br/>TERM: {term} ASSESSMENT: {assessment_type}", styles['Title'])
     elements.append(title)
     elements.append(Spacer(1, 0.25*inch))
 
@@ -811,7 +811,7 @@ def generate_grade_marksheet(grade, term, assessment_type, action):
         f"A.E (Approaching Expectation, 30–49%): {grade_counts['A.E']} learners<br/>"
         f"B.E (Below Expectation, <30%): {grade_counts['B.E']} learners<br/>"
         f"Generated on: {datetime.now().strftime('%Y-%m-%d')}<br/>"
-        f"Hill View School powered by CbcTeachkit",
+        f"Kirima Primary School powered by CbcTeachkit",
         styles['Normal']
     )
     elements.append(summary)
@@ -821,11 +821,19 @@ def generate_grade_marksheet(grade, term, assessment_type, action):
 
     # Handle preview or download
     if action == "preview":
+        stats = {
+            'exceeding': grade_counts['E.E'],
+            'meeting': grade_counts['M.E'],
+            'approaching': grade_counts['A.E'],
+            'below': grade_counts['B.E']
+        }
+        
         return render_template('preview_grade_marksheet.html',
                               grade=grade,
                               term=term,
                               assessment_type=assessment_type,
-                              table_data=table_data)
+                              table_data=table_data,
+                              stats=stats)  # Added stats parameter here
     else:  # action == "download"
         buffer.seek(0)
         return send_file(
@@ -1624,7 +1632,7 @@ def generate_pdf(grade, stream, subject):
     normal_style = styles['Normal']
     heading3_style = styles['Heading3']
 
-    elements.append(Paragraph("Hill View School", title_style))
+    elements.append(Paragraph("Kirima Primary School", title_style))
     elements.append(Paragraph(f"Grade {grade} Stream {stream} - {subject} Report", subtitle_style))
     elements.append(Spacer(1, 12))
 
@@ -1677,7 +1685,7 @@ def generate_pdf(grade, stream, subject):
     elements.append(Spacer(1, 20))
     footer_style = styles['Normal']
     footer_style.alignment = 1
-    elements.append(Paragraph("Hillview School powered by CbcTeachkit", footer_style))
+    elements.append(Paragraph("Kirima primaryschool powered by CbcTeachkit", footer_style))
 
     doc.build(elements)
     return send_file(pdf_file, as_attachment=True)
@@ -1762,7 +1770,7 @@ def generate_class_pdf(grade, stream, term, assessment_type):
 
     title_style.alignment = 1
     subtitle_style.alignment = 1
-    elements.append(Paragraph("HILL VIEW SCHOOL", title_style))
+    elements.append(Paragraph("KIRIMA PRIMARY SCHOOL", title_style))
     elements.append(Paragraph(f"GRADE {grade} - MARKSHEET: AVERAGE SCORE", subtitle_style))
     elements.append(Paragraph(f"STREAM: {stream}  TERM: {term.replace('_', ' ').upper()}  ASSESSMENT: {assessment_type.upper()}", subtitle_style))
     elements.append(Spacer(1, 12))
@@ -1814,7 +1822,7 @@ def generate_class_pdf(grade, stream, term, assessment_type):
     footer_style.fontSize = 8
     current_date = datetime.now().strftime("%Y-%m-%d")
     elements.append(Paragraph(f"Generated on: {current_date}", footer_style))
-    elements.append(Paragraph("Hillview School powered by CbcTeachkit", footer_style))
+    elements.append(Paragraph("Kirima Primary School powered by CbcTeachkit", footer_style))
 
     doc.build(elements)
     return send_file(pdf_file, as_attachment=True)

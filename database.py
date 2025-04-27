@@ -1,7 +1,7 @@
 import sqlite3
 
 def init_db():
-    conn = sqlite3.connect("hillview.db")
+    conn = sqlite3.connect("kirima_primary.db")
     c = conn.cursor()
     c.execute("""
         CREATE TABLE IF NOT EXISTS marks (
