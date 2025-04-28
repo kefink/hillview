@@ -741,6 +741,25 @@ def generate_grade_marksheet(grade, term, assessment_type, action):
     for rank, student_data in enumerate(all_data, 1):
         student_data['rank'] = rank
 
+    # Calculate class averages for each subject
+    subject_averages = []
+    subject_analysis = {}
+    total_students = len(all_data)
+    for subject_idx, (subject_name, subject_initial) in enumerate(subjects):
+        subject_total = sum(student['marks'][subject_idx] for student in all_data)
+        avg = round(subject_total / total_students, 2) if total_students > 0 else 0
+        subject_averages.append(avg)
+        # Calculate subject performance (as a percentage of total_marks)
+        avg_percentage = (avg / total_marks) * 100 if total_marks > 0 else 0
+        performance = get_subject_performance_category(avg_percentage)
+        subject_analysis[subject_initial] = {'average': avg, 'performance': performance}
+
+    # Calculate grade-level averages
+    total_score = sum(student['total'] for student in all_data)
+    avg_score = round(total_score / total_students, 2) if total_students > 0 else 0
+    avg_marks = (avg_score / (len(subjects) * total_marks)) * 100 if total_marks > 0 else 0
+    mean_grade, _ = get_grade_and_points(avg_marks)
+
     # Prepare table headers - use subject initials rather than full names for better fit
     headers = ["S/N", "STUDENT NAME"] + [initial for _, initial in subjects] + ["TOTAL", "AVG %", "GRD", "RANK"]
     
@@ -760,6 +779,12 @@ def generate_grade_marksheet(grade, term, assessment_type, action):
         row.append(student_data['rank'])
         
         table_data.append(row)
+
+    # Add class averages row
+    avg_row = ["", "Class Average"]
+    avg_row.extend(subject_averages)
+    avg_row.extend([round(avg_score, 2), f"{avg_marks:.0f}%", "-", "-"])
+    table_data.append(avg_row)
 
     # Performance summary
     grade_counts = {"E.E": 0, "M.E": 0, "A.E": 0, "B.E": 0}
@@ -794,27 +819,66 @@ def generate_grade_marksheet(grade, term, assessment_type, action):
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 10),
         ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('BACKGROUND', (0, 1), (-1, -2), colors.beige),
         ('GRID', (0, 0), (-1, -1), 1, colors.black),
         ('FONTSIZE', (0, 1), (-1, -1), 8),
         # Align text left for student names
         ('ALIGN', (1, 1), (1, -1), 'LEFT'),
+        # Highlight class average row
+        ('BACKGROUND', (0, -1), (-1, -1), colors.lightgrey),
+        ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
     ]))
     elements.append(table)
     elements.append(Spacer(1, 0.25*inch))
 
-    # Add performance summary
+    # Add enhanced summary
     summary = Paragraph(
         f"Performance Summary:<br/>"
         f"E.E (Exceeding Expectation, ≥75%): {grade_counts['E.E']} learners<br/>"
         f"M.E (Meeting Expectation, 50–74%): {grade_counts['M.E']} learners<br/>"
         f"A.E (Approaching Expectation, 30–49%): {grade_counts['A.E']} learners<br/>"
         f"B.E (Below Expectation, <30%): {grade_counts['B.E']} learners<br/>"
+        f"<br/>Grade-Level Averages:<br/>"
+        f"Avg. Score: {avg_score:.2f}<br/>"
+        f"Avg. Marks: {avg_marks:.2f}%<br/>"
+        f"Mean Grade: {mean_grade}<br/>"
+        f"<br/>Subject Performance Analysis:<br/>",
+        styles['Normal']
+    )
+    elements.append(summary)
+
+    # Add subject performance analysis table
+    subject_analysis_headers = ["Subject", "Average Score", "Performance"]
+    subject_analysis_data = [subject_analysis_headers]
+    for subject_initial, analysis in subject_analysis.items():
+        subject_analysis_data.append([
+            subject_initial,
+            f"{analysis['average']:.2f}",
+            analysis['performance']
+        ])
+
+    subject_analysis_table = Table(subject_analysis_data)
+    subject_analysis_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.white),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+        ('FONTSIZE', (0, 1), (-1, -1), 8),
+    ]))
+    elements.append(subject_analysis_table)
+    elements.append(Spacer(1, 0.25*inch))
+
+    # Add footer
+    footer = Paragraph(
         f"Generated on: {datetime.now().strftime('%Y-%m-%d')}<br/>"
         f"Kirima Primary School powered by CbcTeachkit",
         styles['Normal']
     )
-    elements.append(summary)
+    elements.append(footer)
 
     # Build PDF
     doc.build(elements)
@@ -833,7 +897,7 @@ def generate_grade_marksheet(grade, term, assessment_type, action):
                               term=term,
                               assessment_type=assessment_type,
                               table_data=table_data,
-                              stats=stats)  # Added stats parameter here
+                              stats=stats)
     else:  # action == "download"
         buffer.seek(0)
         return send_file(
@@ -842,6 +906,7 @@ def generate_grade_marksheet(grade, term, assessment_type, action):
             download_name=f"Grade_{grade}_{term}_{assessment_type}_Marksheet.pdf",
             mimetype='application/pdf'
         )
+
 @app.route("/preview_grade_marksheet/<grade>/<term>/<assessment_type>")
 def preview_grade_marksheet(grade, term, assessment_type):
     """Shortcut route for previewing grade marksheets"""

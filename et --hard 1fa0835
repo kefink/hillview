@@ -1,0 +1,22 @@
+[33m3a4ca06[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m app crashed
+[33m4d317d9[m Fix login issue for headteacher and teacher on mobile by using request.form.get()
+[33m1fa0835[m Fix app.py to support Render deployment
+[33m12bc590[m changed to kirima school
+[33m2048157[m Fix database path and add hillview.db
+[33m40501b3[m Add updated requirements.txt with new dependencies
+[33m3d44df5[m Added flask_sqlalchemy to requirements.txt
+[33m769a7e9[m hillview enhanced
+[33mf5d6c32[m accepting uploads from excel
+[33m758cd09[m advanced
+[33mcba26c0[m Added gunicorn to requirements
+[33m6f8688c[m Prepared for Render deployment
+[33mf18150f[m everything working
+[33m786acf0[m individual report download
+[33mdec3b12[m individual learner report works
+[33mffbd564[m class teacher can generate the class marksheet
+[33me75f125[m refined pdf generation
+[33me376a58[m consistent reports
+[33m0aafb96[m pdf is working
+[33mc0cbe58[m enhancement
+[33m1e8f0e2[m download for marksheet
+[33med5f2a9[m Re-added all files including venv
